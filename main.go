@@ -1,17 +1,32 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html/v2"
 )
 
 func main() {
-	app := fiber.New()
+	engine := html.New("./views", ".html")
+
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
 
 	shortUrl := "blog"
 	longUrl := "https://invisibleprogrammer.com"
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("The best URL Shortener ever")
+		return c.Render("index", fiber.Map{
+			"Title": "Hello, World!",
+		})
+	})
+
+	app.Get("/protected", func(c *fiber.Ctx) error {
+		return c.Render("protected", fiber.Map{
+			"Title": "Hello, World. You shouldn't see that unless you logged in!",
+		}, "layouts/main")
 	})
 
 	app.Get("/:shortUrl", func(c *fiber.Ctx) error {
@@ -24,5 +39,5 @@ func main() {
 		return c.SendString("waaat")
 	})
 
-	app.Listen(":3000")
+	log.Fatal(app.Listen(":3000"))
 }
