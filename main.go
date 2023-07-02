@@ -1,43 +1,49 @@
 package main
 
 import (
+	"encoding/gob"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
+	"github.com/joho/godotenv"
+	"invisibleprogrammer.com/invisibleurl/authenticator"
+	"invisibleprogrammer.com/invisibleurl/routing"
 )
 
 func main() {
+
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		log.Panicf("Failed to load the env vars: %v", err)
+	}
+	godotenv.Load(".env")
+
+	// Initialize server session
+	store := session.New()
+
+	// To store custom types in our cookies,
+	// we must first register them using gob.Register
+	gob.Register(map[string]interface{}{})
+
+	// OAuth2 authenticator
+	auth, err := authenticator.New()
+	if err != nil {
+		log.Fatalf("Failed to initialize the authenticator: %v\n", err)
+	}
+
+	// HTML templates
 	engine := html.New("./views", ".html")
 
+	// Initialize engine
 	app := fiber.New(fiber.Config{
 		Views: engine,
 	})
 
-	shortUrl := "blog"
-	longUrl := "https://invisibleprogrammer.com"
+	// Set up routing
+	routing.RegisterRoutes(app, store, auth)
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Render("index", fiber.Map{
-			"Title": "Hello, World!",
-		})
-	})
+	log.Println(app.Listen(":3000"))
 
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.Render("protected", fiber.Map{
-			"Title": "Hello, World. You shouldn't see that unless you logged in!",
-		}, "layouts/main")
-	})
-
-	app.Get("/:shortUrl", func(c *fiber.Ctx) error {
-		short := c.Params("shortUrl")
-
-		if short == shortUrl {
-			return c.Redirect(longUrl, fiber.StatusFound)
-		}
-
-		return c.SendString("waaat")
-	})
-
-	log.Fatal(app.Listen(":3000"))
 }

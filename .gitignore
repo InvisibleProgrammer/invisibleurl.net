@@ -1,1 +1,8 @@
+# Sensitive information
+.env
+
+# air
 tmp/
+
+# vscode
+.vscode
