@@ -43,6 +43,7 @@ func CallbackHandler(store *session.Store, auth *authenticator.Authenticator) fi
 
 		session.Set("access_token", token.AccessToken)
 		session.Set("profile", profile)
+		session.Set("name", profile["name"])
 
 		if err := session.Save(); err != nil {
 			c.SendString(err.Error())

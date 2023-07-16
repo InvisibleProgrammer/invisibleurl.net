@@ -1,9 +1,12 @@
-<html>
+    <html>
     <head>
         <title>Main</title>
     </head>
 
     <body>
-        {{embed}}
+        {{ template "partials/header" .}}
+        {{ embed }}
+        {{ template "partials/footer" .}}
     </body>
+
 </html>

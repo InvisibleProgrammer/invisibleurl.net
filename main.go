@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
 	"invisibleprogrammer.com/invisibleurl/routing"
+	"invisibleprogrammer.com/invisibleurl/userhandler"
 )
 
 func main() {
@@ -38,8 +39,13 @@ func main() {
 
 	// Initialize engine
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		Views:             engine,
+		ViewsLayout:       "layouts/main",
+		PassLocalsToViews: true,
 	})
+
+	// Show authenticated user name on header partial
+	userhandler.RegisterUsernameMiddleware(app, store)
 
 	// Set up routing
 	routing.RegisterRoutes(app, store, auth)
