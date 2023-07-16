@@ -27,16 +27,12 @@ func IsAuthenticatedHandler(store *session.Store, auth *authenticator.Authentica
 func RegisterUsernameMiddleware(app *fiber.App, store *session.Store) {
 	app.Use(func(c *fiber.Ctx) error {
 
-		currentSession, err := store.Get(c)
+		session, err := store.Get(c)
 		if err != nil {
 			log.Fatalf("Couldn't receive sesion: %v", err)
 		}
 
-		profile := currentSession.Get("name")
-
-		log.Printf("Session profile: %v", profile)
-
-		c.Locals("name", profile)
+		c.Locals("name", session.Get("name"))
 
 		return c.Next()
 	})
