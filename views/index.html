@@ -1,1 +1,20 @@
 <h1>{{.Title}}</h1>
+
+
+{{ if .name }} 
+
+most recent URLS
+
+Shorten an URL
+
+<form action="makeShort" method="post">
+    <input type="text" name="fullUrl" id="fullUrl" value="Full URL">
+    <span>Short URL:</span><span id="shortened"></span>
+
+    <input type="submit" value="Shorten me">
+</form>
+
+{{ else }} 
+
+most recent URLS
+{{ end }}

@@ -3,6 +3,7 @@ package userhandler
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -41,9 +42,12 @@ func CallbackHandler(store *session.Store, auth *authenticator.Authenticator) fi
 			return c.SendStatus(http.StatusInternalServerError)
 		}
 
+		log.Printf("Subject: %v", strings.Split(idToken.Subject, "|")[1])
+
 		session.Set("access_token", token.AccessToken)
 		session.Set("profile", profile)
 		session.Set("name", profile["name"])
+		session.Set("userId", extractUserIdFromSubject(idToken.Subject))
 
 		if err := session.Save(); err != nil {
 			c.SendString(err.Error())
@@ -53,4 +57,12 @@ func CallbackHandler(store *session.Store, auth *authenticator.Authenticator) fi
 		return c.Redirect("/", http.StatusTemporaryRedirect)
 	}
 
+}
+
+func extractUserIdFromSubject(subject string) string {
+	if strings.Contains(subject, "|") {
+		return strings.Split(subject, "|")[1]
+	} else {
+		return subject
+	}
 }

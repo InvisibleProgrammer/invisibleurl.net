@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
+	"invisibleprogrammer.com/invisibleurl/shortenerhandler"
 	"invisibleprogrammer.com/invisibleurl/urlshortener"
 	"invisibleprogrammer.com/invisibleurl/userhandler"
 )
@@ -14,7 +15,7 @@ func RegisterRoutes(app *fiber.App, store *session.Store, auth *authenticator.Au
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Render("index", fiber.Map{
-			"Title": "Hello, World!",
+			"Title": "InvisibleUrl.Net",
 		})
 	})
 
@@ -39,5 +40,7 @@ func RegisterRoutes(app *fiber.App, store *session.Store, auth *authenticator.Au
 
 		return c.Redirect(fullUrl, http.StatusFound)
 	})
+
+	app.Post("/makeShort", userhandler.IsAuthenticatedHandler(store, auth), shortenerhandler.MakeShortHandler(store))
 
 }

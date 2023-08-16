@@ -46,6 +46,7 @@ func LogoutHandler(store *session.Store, auth *authenticator.Authenticator) fibe
 		session.Delete("access_token")
 		session.Delete("profile")
 		session.Delete("name")
+		session.Delete("userId")
 
 		if err := session.Save(); err != nil {
 			c.SendString(err.Error())
