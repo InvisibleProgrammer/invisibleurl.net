@@ -16,5 +16,13 @@ Shorten an URL
 
 {{ else }} 
 
-most recent URLS
+most recent URLS:
+
+    <ul>
+    {{ range .ShortURLs }}
+
+        <li>{{ .FullUrl }} - {{ .ShortUrl }}</li>
+
+    {{ end }}
+    </ul>
 {{ end }}

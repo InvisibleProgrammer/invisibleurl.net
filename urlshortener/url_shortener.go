@@ -22,6 +22,10 @@ var shortenedUrls = []ShortenedUrl{
 	},
 }
 
+func GetAll() []ShortenedUrl {
+	return shortenedUrls
+}
+
 func GetFullUrl(short string) (string, error) {
 	lowerCasedShort := strings.ToLower(short)
 

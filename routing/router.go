@@ -15,7 +15,8 @@ func RegisterRoutes(app *fiber.App, store *session.Store, auth *authenticator.Au
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Render("index", fiber.Map{
-			"Title": "InvisibleUrl.Net",
+			"Title":     "InvisibleUrl.Net",
+			"ShortURLs": urlshortener.GetAll(),
 		})
 	})
 

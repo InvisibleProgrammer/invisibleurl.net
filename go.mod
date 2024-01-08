@@ -7,6 +7,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/gofiber/template/html/v2 v2.0.4
 	github.com/joho/godotenv v1.5.1
+	github.com/jxskiss/base62 v1.1.0
 	golang.org/x/oauth2 v0.9.0
 )
 
@@ -17,7 +18,6 @@ require (
 	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/jxskiss/base62 v1.1.0 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
