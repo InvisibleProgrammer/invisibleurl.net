@@ -3,12 +3,11 @@ package urlshortener
 import (
 	"errors"
 	"strings"
-
-	"github.com/jxskiss/base62"
 )
 
 type ShortenedUrl struct {
 	UserId      string
+	UrlId       int
 	FullUrl     string
 	OriginalUrl string
 	ShortUrl    string
@@ -17,6 +16,7 @@ type ShortenedUrl struct {
 var shortenedUrls = []ShortenedUrl{
 	{
 		UserId:   "1",
+		UrlId:    1,
 		FullUrl:  "https://invisibleprogrammer.com",
 		ShortUrl: "blog",
 	},
@@ -45,28 +45,41 @@ func GetFullUrl(short string) (string, error) {
 
 func MakeShortUrl(userId string, fullUrl string) (string, error) {
 
-	/*
-
-		Note: My memory completely faded about this algorithm.
-		We should base62 encode a full url, just the Id of the URL.
-		The Id should be a big bigint that ensures the shortened base62 encoded string
-		will have at minimum 7 characters length
-
-	*/
-	encoded := base62.EncodeToString([]byte(fullUrl))
-
-	for i := 0; i < len(shortenedUrls); i++ {
-		if shortenedUrls[i].ShortUrl == encoded {
-			return encoded, nil // Todo: figure out what to do if other user has the same shortened url
-		}
-	}
+	nextUrlId := getnextUrlId(shortenedUrls)
+	encoded := base62Encode(nextUrlId)
 
 	shortenedUrls = append(shortenedUrls, ShortenedUrl{
 		UserId:      userId,
+		UrlId:       nextUrlId,
 		FullUrl:     fullUrl,
 		OriginalUrl: fullUrl,
 		ShortUrl:    encoded,
 	})
 
 	return encoded, nil
+}
+
+func base62Encode(id int) string {
+	alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	var encoded strings.Builder
+
+	for id > 0 {
+		encoded.WriteByte(alphabet[id%62])
+		id = id / 62
+	}
+
+	return encoded.String()
+}
+
+func getnextUrlId(shortenedUrls []ShortenedUrl) int {
+	maxId := 7000 // We start from this value to make sure the shortened version's length at least 6
+
+	for _, v := range shortenedUrls {
+		if v.UrlId > maxId {
+			maxId = v.UrlId
+		}
+	}
+
+	return maxId + 1
 }

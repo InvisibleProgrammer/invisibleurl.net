@@ -7,7 +7,6 @@ require (
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/gofiber/template/html/v2 v2.0.4
 	github.com/joho/godotenv v1.5.1
-	github.com/jxskiss/base62 v1.1.0
 	golang.org/x/oauth2 v0.9.0
 )
 
