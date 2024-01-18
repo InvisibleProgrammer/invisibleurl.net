@@ -27,6 +27,6 @@ func MakeShortHandler(store *session.Store) fiber.Handler {
 			log.Printf("Shortened version: %s", shortUrl)
 		}
 
-		return c.SendStatus(200)
+		return c.Redirect("/")
 	}
 }

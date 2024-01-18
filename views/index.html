@@ -4,6 +4,14 @@
 {{ if .name }} 
 
 most recent URLS
+<ul>
+    {{ range .ShortURLs }}
+
+        <li>{{ .FullUrl }} - {{ .ShortUrl }}</li>
+
+    {{ end }}
+</ul>
+
 
 Shorten an URL
 

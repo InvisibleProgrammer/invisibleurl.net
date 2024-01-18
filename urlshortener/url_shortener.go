@@ -2,6 +2,7 @@ package urlshortener
 
 import (
 	"errors"
+	"log"
 	"strings"
 )
 
@@ -27,14 +28,12 @@ func GetAll() []ShortenedUrl {
 }
 
 func GetFullUrl(short string) (string, error) {
-	lowerCasedShort := strings.ToLower(short)
-
 	for i := 0; i < len(shortenedUrls); i++ {
 		if shortenedUrls[i].UserId == "" {
 			break
 		}
 
-		if shortenedUrls[i].ShortUrl == lowerCasedShort {
+		if shortenedUrls[i].ShortUrl == short {
 			return shortenedUrls[i].FullUrl, nil
 		}
 
@@ -46,7 +45,9 @@ func GetFullUrl(short string) (string, error) {
 func MakeShortUrl(userId string, fullUrl string) (string, error) {
 
 	nextUrlId := getnextUrlId(shortenedUrls)
+	log.Default().Printf("Next id: %d", nextUrlId)
 	encoded := base62Encode(nextUrlId)
+	log.Default().Printf("encoded: %s", encoded)
 
 	shortenedUrls = append(shortenedUrls, ShortenedUrl{
 		UserId:      userId,
@@ -73,7 +74,7 @@ func base62Encode(id int) string {
 }
 
 func getnextUrlId(shortenedUrls []ShortenedUrl) int {
-	maxId := 7000 // We start from this value to make sure the shortened version's length at least 6
+	maxId := 20_000_000 // We start from this value to make sure the shortened version's length at least 5
 
 	for _, v := range shortenedUrls {
 		if v.UrlId > maxId {
