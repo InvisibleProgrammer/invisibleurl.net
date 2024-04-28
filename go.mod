@@ -1,6 +1,6 @@
 module invisibleprogrammer.com/invisibleurl
 
-go 1.20
+go 1.22
 
 require (
 	github.com/coreos/go-oidc/v3 v3.6.0
