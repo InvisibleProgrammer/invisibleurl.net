@@ -2,6 +2,7 @@ package urlshortener
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 )
@@ -58,6 +59,26 @@ func MakeShortUrl(userId string, fullUrl string) (string, error) {
 	})
 
 	return encoded, nil
+}
+
+func DeleteShortUrl(userId string, shortUrl string) error {
+	for i := 0; i < len(shortenedUrls); i++ {
+		if shortenedUrls[i].UserId == "" {
+			break
+		}
+
+		if shortenedUrls[i].ShortUrl == shortUrl {
+			if shortenedUrls[i].UserId != userId {
+				return fmt.Errorf("cannot delete %s: user has no such short URL", shortUrl)
+			}
+
+			shortenedUrls = append(shortenedUrls[:i], shortenedUrls[i+1:]...)
+			return nil
+		}
+
+	}
+
+	return fmt.Errorf("couldn't find short URL: %s", shortUrl)
 }
 
 func base62Encode(id int) string {

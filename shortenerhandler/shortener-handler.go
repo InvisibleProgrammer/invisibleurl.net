@@ -1,6 +1,7 @@
 package shortenerhandler
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,8 +10,6 @@ import (
 )
 
 func MakeShortHandler(store *session.Store) fiber.Handler {
-	log.Printf("MakeShortHandler begin: \n")
-
 	return func(c *fiber.Ctx) error {
 		session, err := store.Get(c)
 		if err != nil {
@@ -28,5 +27,32 @@ func MakeShortHandler(store *session.Store) fiber.Handler {
 		}
 
 		return c.Redirect("/")
+	}
+}
+
+func DeleteShortHandler(store *session.Store) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		session, err := store.Get(c)
+		if err != nil {
+			log.Fatalf("Couldn't receive session: %v", err)
+		}
+
+		userId := session.Get("userId")
+
+		shortUrl := c.Params("shortUrl")
+
+		err = urlshortener.DeleteShortUrl(userId.(string), shortUrl)
+		if err != nil {
+			errorMessage := fmt.Sprintf("Error on deleting %s: %v", shortUrl, err)
+			log.Print(errorMessage)
+
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": errorMessage,
+			})
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+
 	}
 }

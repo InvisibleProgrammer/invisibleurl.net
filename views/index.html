@@ -1,5 +1,27 @@
 <h1>{{.Title}}</h1>
 
+<script >
+    function deleteShortUrlAndRedirectToHome(shortUrl) {
+        const url = "http://localhost:3000/shortUrl/" + shortUrl;
+        console.log(url)
+
+        const response = fetch(url, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }).then(response => {
+            const item = document.getElementById(shortUrl);
+            if (item) {
+                item.remove();
+            }
+        })
+
+        console.log(response)
+
+    }
+</script>
+
 
 {{ if .name }} 
 
@@ -7,7 +29,7 @@ most recent URLS
 <ul>
     {{ range .ShortURLs }}
 
-        <li>{{ .FullUrl }} - {{ .ShortUrl }}</li>
+    <li id="{{ .ShortUrl }}">{{ .FullUrl }} - {{ .ShortUrl }}<input type="button" value="delete" onclick="deleteShortUrlAndRedirectToHome( '{{ .ShortUrl }}' )" /></li>
 
     {{ end }}
 </ul>
@@ -15,22 +37,15 @@ most recent URLS
 
 Shorten an URL
 
-<form action="makeShort" method="post">
-    <input type="text" name="fullUrl" id="fullUrl" value="Full URL">
-    <span>Short URL:</span><span id="shortened"></span>
-
-    <input type="submit" value="Shorten me">
-</form>
-
 {{ else }} 
 
 most recent URLS:
 
-    <ul>
+<ul>
     {{ range .ShortURLs }}
 
         <li>{{ .FullUrl }} - {{ .ShortUrl }}</li>
 
     {{ end }}
-    </ul>
+</ul>
 {{ end }}

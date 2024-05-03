@@ -42,6 +42,8 @@ func RegisterRoutes(app *fiber.App, store *session.Store, auth *authenticator.Au
 		return c.Redirect(fullUrl, http.StatusFound)
 	})
 
+	app.Delete("/shortUrl/:shortUrl", userhandler.IsAuthenticatedHandler(store, auth), shortenerhandler.DeleteShortHandler(store))
+
 	app.Post("/makeShort", userhandler.IsAuthenticatedHandler(store, auth), shortenerhandler.MakeShortHandler(store))
 
 }
