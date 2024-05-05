@@ -44,10 +44,11 @@ func CallbackHandler(store *session.Store, auth *authenticator.Authenticator) fi
 
 		log.Printf("Subject: %v", strings.Split(idToken.Subject, "|")[1])
 
+		userId := extractUserIdFromSubject(idToken.Subject)
 		session.Set("access_token", token.AccessToken)
 		session.Set("profile", profile)
 		session.Set("name", profile["name"])
-		session.Set("userId", extractUserIdFromSubject(idToken.Subject))
+		session.Set("userId", userId)
 
 		if err := session.Save(); err != nil {
 			c.SendString(err.Error())

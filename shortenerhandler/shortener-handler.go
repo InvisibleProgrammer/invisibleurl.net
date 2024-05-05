@@ -3,6 +3,7 @@ package shortenerhandler
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -54,5 +55,19 @@ func DeleteShortHandler(store *session.Store) fiber.Handler {
 
 		return c.SendStatus(fiber.StatusOK)
 
+	}
+}
+
+func RedirectShortUrlHandler() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		short := c.Params("shortUrl")
+
+		fullUrl, err := urlshortener.GetFullUrl(short)
+		if err != nil {
+			return c.SendString("waaat")
+		}
+
+		return c.Redirect(fullUrl, http.StatusFound)
 	}
 }

@@ -1,8 +1,6 @@
 package routing
 
 import (
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
@@ -31,19 +29,8 @@ func RegisterRoutes(app *fiber.App, store *session.Store, auth *authenticator.Au
 	app.Get("/user/logout", userhandler.LogoutHandler(store, auth))
 	app.Get("/user/callback", userhandler.CallbackHandler(store, auth))
 
-	app.Get("/:shortUrl", func(c *fiber.Ctx) error {
-		short := c.Params("shortUrl")
-
-		fullUrl, err := urlshortener.GetFullUrl(short)
-		if err != nil {
-			return c.SendString("waaat")
-		}
-
-		return c.Redirect(fullUrl, http.StatusFound)
-	})
-
+	app.Get("/:shortUrl", shortenerhandler.RedirectShortUrlHandler())
 	app.Delete("/shortUrl/:shortUrl", userhandler.IsAuthenticatedHandler(store, auth), shortenerhandler.DeleteShortHandler(store))
-
 	app.Post("/makeShort", userhandler.IsAuthenticatedHandler(store, auth), shortenerhandler.MakeShortHandler(store))
 
 }

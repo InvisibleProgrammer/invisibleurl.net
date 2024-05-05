@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
+	"invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/routing"
 	"invisibleprogrammer.com/invisibleurl/userhandler"
 )
@@ -21,6 +22,8 @@ func main() {
 		log.Panicf("Failed to load the env vars: %v", err)
 	}
 	godotenv.Load(".env")
+
+	db.Start()
 
 	// Initialize server session
 	store := session.New()
