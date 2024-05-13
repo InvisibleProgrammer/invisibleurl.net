@@ -1,10 +1,11 @@
 package db
 
 import (
+	"fmt"
 	"log"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/jackc/pgx/v5/stdlib" // Standard library bindings for pgx (Postgres driver)
+	"github.com/jmoiron/sqlx"
 )
 
 type User struct {
@@ -12,18 +13,31 @@ type User struct {
 	ExternalId string `gorm:"uniqueIndex"`
 }
 
-func Start() error {
-	dsn := "host=localhost user=invisibleprogrammer password=invisiblepassword dbname=invisibleurl-db port=5432 sslmode=disable TimeZone=Europe/Budapest"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+type Repository struct {
+	Db sqlx.DB
+}
 
+func NewRepository() (*Repository, error) {
+	db, err := connect()
 	if err != nil {
-		log.Fatalf("Couldn't connect to database: %v", err)
+		return nil, err
 	}
 
-	err = db.AutoMigrate(&User{})
+	return &Repository{Db: *db}, nil
+}
+
+func connect() (*sqlx.DB, error) {
+	db, err := sqlx.Open("pgx", "postgres://invisibleprogrammer:invisiblepassword@localhost:5432/invisibleurl-db?sslmode=disable")
 	if err != nil {
-		log.Fatalf("Db migration failed: %v", err)
+		return nil, fmt.Errorf("couldn't connect to database: %v", err)
 	}
 
-	return nil
+	err = db.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't ping the database: %v", err)
+	}
+
+	log.Printf("Connected to the database")
+
+	return db, nil
 }

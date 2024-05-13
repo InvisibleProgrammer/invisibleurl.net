@@ -23,7 +23,10 @@ func main() {
 	}
 	godotenv.Load(".env")
 
-	db.Start()
+	_, err := db.NewRepository()
+	if err != nil {
+		log.Fatalf("Failed to initialize the repository: %s\n", err.Error())
+	}
 
 	// Initialize server session
 	store := session.New()
