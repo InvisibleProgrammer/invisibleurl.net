@@ -1,4 +1,4 @@
-package shortenerhandler
+package urlshortener
 
 import (
 	"fmt"
@@ -7,10 +7,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"invisibleprogrammer.com/invisibleurl/urlshortener"
 )
 
-func MakeShortHandler(store *session.Store) fiber.Handler {
+type ShortenerHandler struct {
+	urlshortener *UrlShortener
+}
+
+func NewShortenerHandler(urlshortener UrlShortener) *ShortenerHandler {
+	return &ShortenerHandler{
+		urlshortener: &urlshortener,
+	}
+}
+
+func MakeShortHandler(store *session.Store, urlShortener *UrlShortener) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session, err := store.Get(c)
 		if err != nil {
@@ -20,7 +29,7 @@ func MakeShortHandler(store *session.Store) fiber.Handler {
 		userId := session.Get("userId")
 		fullUrl := c.FormValue("fullUrl")
 
-		shortUrl, err := urlshortener.MakeShortUrl(userId.(string), fullUrl)
+		shortUrl, err := urlShortener.MakeShortUrl(userId.(string), fullUrl)
 		if err != nil {
 			log.Printf("Error on shortening: %v", err)
 		} else {
@@ -43,7 +52,7 @@ func DeleteShortHandler(store *session.Store) fiber.Handler {
 
 		shortUrl := c.Params("shortUrl")
 
-		err = urlshortener.DeleteShortUrl(userId.(string), shortUrl)
+		err = DeleteShortUrl(userId.(string), shortUrl)
 		if err != nil {
 			errorMessage := fmt.Sprintf("Error on deleting %s: %v", shortUrl, err)
 			log.Print(errorMessage)
@@ -58,12 +67,12 @@ func DeleteShortHandler(store *session.Store) fiber.Handler {
 	}
 }
 
-func RedirectShortUrlHandler() fiber.Handler {
+func RedirectShortUrlHandler(urlShortener *UrlShortener) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
 		short := c.Params("shortUrl")
 
-		fullUrl, err := urlshortener.GetFullUrl(short)
+		fullUrl, err := urlShortener.GetFullUrl(short)
 		if err != nil {
 			return c.SendString("waaat")
 		}

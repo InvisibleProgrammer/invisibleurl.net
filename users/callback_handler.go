@@ -1,4 +1,4 @@
-package userhandler
+package users
 
 import (
 	"log"
@@ -10,7 +10,7 @@ import (
 	"invisibleprogrammer.com/invisibleurl/authenticator"
 )
 
-func CallbackHandler(store *session.Store, auth *authenticator.Authenticator) fiber.Handler {
+func CallbackHandler(store *session.Store, auth *authenticator.Authenticator, repository *UserRepository) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 
@@ -42,9 +42,16 @@ func CallbackHandler(store *session.Store, auth *authenticator.Authenticator) fi
 			return c.SendStatus(http.StatusInternalServerError)
 		}
 
-		log.Printf("Subject: %v", strings.Split(idToken.Subject, "|")[1])
+		// log.Printf("Subject: %v", strings.Split(idToken.Subject, "|")[1])
 
 		userId := extractUserIdFromSubject(idToken.Subject)
+
+		err = repository.StoreUser(userId)
+		if err != nil {
+			log.Printf("error in storing user: %v", err)
+			return c.SendStatus(http.StatusInternalServerError)
+		}
+
 		session.Set("access_token", token.AccessToken)
 		session.Set("profile", profile)
 		session.Set("name", profile["name"])

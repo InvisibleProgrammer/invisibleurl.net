@@ -7,78 +7,70 @@ import (
 	"strings"
 )
 
-type ShortenedUrl struct {
-	UserId      string
-	UrlId       int
-	FullUrl     string
-	OriginalUrl string
-	ShortUrl    string
+type UrlShortener struct {
+	urlShortenerRepository *UrlShortenerRepository
 }
 
-var shortenedUrls = []ShortenedUrl{
-	{
-		UserId:   "1",
-		UrlId:    1,
-		FullUrl:  "https://invisibleprogrammer.com",
-		ShortUrl: "blog",
-	},
+func NewUrlShortener(urlShortenerRepository *UrlShortenerRepository) *UrlShortener {
+	return &UrlShortener{
+		urlShortenerRepository: urlShortenerRepository,
+	}
 }
 
-func GetAll() []ShortenedUrl {
-	return shortenedUrls
-}
+func (urlShortener *UrlShortener) GetFullUrl(short string) (string, error) {
 
-func GetFullUrl(short string) (string, error) {
-	for i := 0; i < len(shortenedUrls); i++ {
-		if shortenedUrls[i].UserId == "" {
-			break
+	allUrls, err := urlShortener.urlShortenerRepository.GetAll()
+	if err != nil {
+		return "", fmt.Errorf("couldn't get the shortened urls: %v", err)
+	}
+
+	for i := 0; i < len(allUrls); i++ {
+		if allUrls[i].ShortUrl == short {
+			return allUrls[i].FullUrl, nil
 		}
-
-		if shortenedUrls[i].ShortUrl == short {
-			return shortenedUrls[i].FullUrl, nil
-		}
-
 	}
 
 	return "", errors.New("couldn't find short URL")
 }
 
-func MakeShortUrl(userId string, fullUrl string) (string, error) {
+func (urlShortener *UrlShortener) MakeShortUrl(userId string, fullUrl string) (string, error) {
+	return "", nil
+	// encoded := base62Encode(nextUrlId)
+	// log.Default().Printf("encoded: %s", encoded)
 
-	nextUrlId := getnextUrlId(shortenedUrls)
-	log.Default().Printf("Next id: %d", nextUrlId)
-	encoded := base62Encode(nextUrlId)
-	log.Default().Printf("encoded: %s", encoded)
+	// shortenedUrls = append(shortenedUrls, ShortenedUrl{
+	// 	UserId:      userId,
+	// 	UrlId:       nextUrlId,
+	// 	FullUrl:     fullUrl,
+	// 	OriginalUrl: fullUrl,
+	// 	ShortUrl:    encoded,
+	// })
 
-	shortenedUrls = append(shortenedUrls, ShortenedUrl{
-		UserId:      userId,
-		UrlId:       nextUrlId,
-		FullUrl:     fullUrl,
-		OriginalUrl: fullUrl,
-		ShortUrl:    encoded,
-	})
-
-	return encoded, nil
+	// return encoded, nil
 }
 
 func DeleteShortUrl(userId string, shortUrl string) error {
-	for i := 0; i < len(shortenedUrls); i++ {
-		if shortenedUrls[i].UserId == "" {
-			break
-		}
+	// panic("not implemented yet")
+	log.Println("not implemented yet")
 
-		if shortenedUrls[i].ShortUrl == shortUrl {
-			if shortenedUrls[i].UserId != userId {
-				return fmt.Errorf("cannot delete %s: user has no such short URL", shortUrl)
-			}
+	return nil
+	// for i := 0; i < len(shortenedUrls); i++ {
+	// 	if shortenedUrls[i].UserId == "" {
+	// 		break
+	// 	}
 
-			shortenedUrls = append(shortenedUrls[:i], shortenedUrls[i+1:]...)
-			return nil
-		}
+	// 	if shortenedUrls[i].ShortUrl == shortUrl {
+	// 		if shortenedUrls[i].UserId != userId {
+	// 			return fmt.Errorf("cannot delete %s: user has no such short URL", shortUrl)
+	// 		}
 
-	}
+	// 		shortenedUrls = append(shortenedUrls[:i], shortenedUrls[i+1:]...)
+	// 		return nil
+	// 	}
 
-	return fmt.Errorf("couldn't find short URL: %s", shortUrl)
+	// }
+
+	// return fmt.Errorf("couldn't find short URL: %s", shortUrl)
 }
 
 func base62Encode(id int) string {

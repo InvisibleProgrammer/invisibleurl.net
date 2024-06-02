@@ -5,6 +5,8 @@ services:
   db:
     image: postgres
     restart: always
+    volumes:
+      - "./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql"
     environment:
       POSTGRES_USER: invisibleprogrammer
       POSTGRES_PASSWORD: invisiblepassword

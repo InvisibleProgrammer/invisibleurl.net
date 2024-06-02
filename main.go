@@ -10,9 +10,10 @@ import (
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
-	"invisibleprogrammer.com/invisibleurl/db"
+	repository "invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/routing"
-	"invisibleprogrammer.com/invisibleurl/userhandler"
+	"invisibleprogrammer.com/invisibleurl/urlshortener"
+	"invisibleprogrammer.com/invisibleurl/users"
 )
 
 func main() {
@@ -23,10 +24,14 @@ func main() {
 	}
 	godotenv.Load(".env")
 
-	_, err := db.NewRepository()
+	// Initialize repositories
+	repository, err := repository.NewRepository()
 	if err != nil {
-		log.Fatalf("Failed to initialize the repository: %s\n", err.Error())
+		log.Fatalf("Failed to initialize db: %v\n", err)
 	}
+
+	userRepository := users.NewUserRepository(repository)
+	urlShortenerRepository := urlshortener.NewUrlShortenerRepository(repository)
 
 	// Initialize server session
 	store := session.New()
@@ -52,7 +57,7 @@ func main() {
 	})
 
 	// Show authenticated user name on header partial
-	userhandler.RegisterUsernameMiddleware(app, store)
+	users.RegisterUsernameMiddleware(app, store)
 
 	app.Use(cors.New(cors.Config{
 		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
@@ -62,7 +67,7 @@ func main() {
 	}))
 
 	// Set up routing
-	routing.RegisterRoutes(app, store, auth)
+	routing.RegisterRoutes(app, store, auth, userRepository, urlShortenerRepository)
 
 	log.Println(app.Listen(":3000"))
 

@@ -8,11 +8,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type User struct {
-	UserId     int64  `gorm:"primaryKey autoIncrement"`
-	ExternalId string `gorm:"uniqueIndex"`
-}
-
 type Repository struct {
 	Db sqlx.DB
 }

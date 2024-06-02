@@ -1,4 +1,4 @@
-package userhandler
+package users
 
 import (
 	"log"
