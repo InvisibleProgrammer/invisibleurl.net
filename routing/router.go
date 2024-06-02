@@ -1,8 +1,6 @@
 package routing
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
@@ -17,24 +15,9 @@ func RegisterRoutes(
 	userRepository *users.UserRepository,
 	urlShortenerRepository *urlshortener.UrlShortenerRepository) {
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		allUrls, err := urlShortenerRepository.GetAll()
-		if err != nil {
-			c.SendStatus(fiber.StatusInternalServerError)
-			return fmt.Errorf("couldn't receive dahboard items")
-		}
-
-		return c.Render("index", fiber.Map{
-			"Title":     "InvisibleUrl.Net",
-			"ShortURLs": allUrls,
-		})
-	})
-
-	app.Get("/protected", users.IsAuthenticatedHandler(store, auth), func(c *fiber.Ctx) error {
-		return c.Render("protected", fiber.Map{
-			"Title": "Hello, World. You shouldn't see that unless you logged in!",
-		}, "layouts/main")
-	})
+	app.Get("/", urlshortener.DashboardHandler(urlShortenerRepository))
+	app.Get("/healthcheck", HealthCheckHandler())
+	app.Get("/protected", users.IsAuthenticatedHandler(store, auth), ProtectedHandler())
 
 	app.Get("/user", users.UserHandler(store))
 	app.Get("/user/login", users.LoginHandler(store, auth))
@@ -45,5 +28,4 @@ func RegisterRoutes(
 	app.Get("/:shortUrl", urlshortener.RedirectShortUrlHandler(urlShortener))
 	app.Delete("/shortUrl/:shortUrl", users.IsAuthenticatedHandler(store, auth), urlshortener.DeleteShortHandler(store))
 	app.Post("/makeShort", users.IsAuthenticatedHandler(store, auth), urlshortener.MakeShortHandler(store, urlShortener))
-
 }
