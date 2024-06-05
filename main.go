@@ -2,10 +2,14 @@ package main
 
 import (
 	"encoding/gob"
-	"log"
+	"os"
+
+	"golang.org/x/exp/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
@@ -18,16 +22,26 @@ import (
 
 func main() {
 
+	handler := slog.NewJSONHandler(os.Stdout, nil)
+	log := slog.New(handler)
+
+	log.Info("Starting Fiber application",
+		slog.String("version", "v2.52.1"),
+		slog.String("address", "127.0.0.1:3000"),
+		slog.String("host", "0.0.0.0"),
+		slog.Int("port", 3000),
+		slog.Int("pid", os.Getpid()))
+
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		log.Panicf("Failed to load the env vars: %v", err)
+		log.Error("Failed to load the env vars: %v", err)
 	}
 	godotenv.Load(".env")
 
 	// Initialize repositories
 	repository, err := repository.NewRepository()
 	if err != nil {
-		log.Fatalf("Failed to initialize db: %v\n", err)
+		log.Error("Failed to initialize db: %v\n", err)
 	}
 
 	userRepository := users.NewUserRepository(repository)
@@ -43,7 +57,7 @@ func main() {
 	// OAuth2 authenticator
 	auth, err := authenticator.New()
 	if err != nil {
-		log.Fatalf("Failed to initialize the authenticator: %v\n", err)
+		log.Error("Failed to initialize the authenticator: %v\n", err)
 	}
 
 	// HTML templates
@@ -56,12 +70,21 @@ func main() {
 		PassLocalsToViews: true,
 	})
 
+	app.Use(requestid.New())
+	app.Use(logger.New(logger.Config{
+		Format: `{"time":"${time}","level":"INFO","msg":"Incoming request","request.time":"${time}","request.method":"${method}","request.host":"${host}","request.path":"${path}","request.query":"${query}","request.params":"${params}","request.route":"${route}","request.ip":"${ip}","request.x-forwarded-for":"${ips}","request.referer":"${referer}","request.length":${bytesReceived},"response.time":"${time}","response.latency":"${latency}","response.status":${status},"response.length":${bytesSent},"id":"${locals:requestid}"}` + "\n",
+	}))
+
+	app.Use(logger.New(logger.Config{
+		Format: `{"time":"${time}","level":"INFO","msg":"Incoming request","request.time":"${time}","request.method":"${method}","request.host":"${host}","request.path":"${path}","request.query":"${query}","request.params":"${params}","request.route":"${route}","request.ip":"${ip}","request.x-forwarded-for":"${ips}","request.referer":"${referer}","request.length":${bytesReceived},"response.time":"${time}","response.latency":"${latency}","response.status":${status},"response.length":${bytesSent},"id":"${locals:requestid}"}` + "\n",
+	}))
+
 	// Show authenticated user name on header partial
 	users.RegisterUsernameMiddleware(app, store)
 
 	app.Use(cors.New(cors.Config{
 		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
-		AllowOrigins:     "*",
+		AllowOrigins:     "http://localhost:3000",
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
@@ -69,6 +92,5 @@ func main() {
 	// Set up routing
 	routing.RegisterRoutes(app, store, auth, userRepository, urlShortenerRepository)
 
-	log.Println(app.Listen(":3000"))
-
+	log.Error("Failed to start server", slog.String("error", app.Listen(":3000").Error()))
 }
