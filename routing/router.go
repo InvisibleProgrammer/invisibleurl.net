@@ -20,6 +20,7 @@ func RegisterRoutes(
 	app.Get("/protected", users.IsAuthenticatedHandler(store, auth), ProtectedHandler())
 
 	app.Get("/user", users.UserHandler(store))
+	app.Get("/user/register", users.RegisterHandler(store, auth))
 	app.Get("/user/login", users.LoginHandler(store, auth))
 	app.Get("/user/logout", users.LogoutHandler(store, auth))
 	app.Get("/user/callback", users.CallbackHandler(store, auth, userRepository))
