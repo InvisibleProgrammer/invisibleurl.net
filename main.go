@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
-	"invisibleprogrammer.com/invisibleurl/authenticator"
 	repository "invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/routing"
 	"invisibleprogrammer.com/invisibleurl/urlshortener"
@@ -54,12 +53,6 @@ func main() {
 	// we must first register them using gob.Register
 	gob.Register(map[string]interface{}{})
 
-	// OAuth2 authenticator
-	auth, err := authenticator.New()
-	if err != nil {
-		log.Error("Failed to initialize the authenticator: %v\n", err)
-	}
-
 	// HTML templates
 	engine := html.New("./views", ".html")
 
@@ -90,7 +83,7 @@ func main() {
 	}))
 
 	// Set up routing
-	routing.RegisterRoutes(app, store, auth, userRepository, urlShortenerRepository)
+	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository)
 
 	log.Error("Failed to start server", slog.String("error", app.Listen(":3000").Error()))
 }

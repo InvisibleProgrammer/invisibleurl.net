@@ -6,10 +6,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"invisibleprogrammer.com/invisibleurl/authenticator"
 )
 
-func IsAuthenticatedHandler(store *session.Store, auth *authenticator.Authenticator) fiber.Handler {
+func IsAuthenticatedHandler(store *session.Store) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session, err := store.Get(c)
 		if err != nil {
