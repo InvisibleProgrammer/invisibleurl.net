@@ -18,7 +18,8 @@ func RegisterRoutes(
 	app.Get("/protected", users.IsAuthenticatedHandler(store), ProtectedHandler())
 
 	app.Get("/user", users.UserHandler(store))
-	app.Post("/user/register", users.RegisterHandler(store))
+	app.Get("/user/sign-up", users.GetSignUpHandler())
+	app.Post("/user/sign-up", users.PostSignUpHHandler(store))
 	app.Get("/user/login", users.LoginHandler(store))
 	app.Get("/user/logout", users.LogoutHandler(store))
 
