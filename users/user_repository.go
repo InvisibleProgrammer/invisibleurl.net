@@ -12,7 +12,29 @@ func NewUserRepository(db *db.Repository) *UserRepository {
 	}
 }
 
-func (repository *UserRepository) StoreUser(externalUserId string) error {
+func (repository *UserRepository) Is_Exists(emailAddress string) (bool, error) {
+	selectStmnt :=
+		`select 1 from users where email_address = :emailAddress and user_status = 1`
+
+	parameter := map[string]interface{}{
+		"emailAddress": emailAddress,
+	}
+
+	var hasUser int
+	rows, err := repository.db.Db.NamedQuery(selectStmnt, parameter)
+	if err != nil {
+		return false, err
+	}
+
+	err = rows.Scan(&hasUser)
+	if err != nil {
+		return false, err
+	}
+
+	return hasUser == 1, nil
+}
+
+func (repository *UserRepository) StoreUser(publicId string, emailAddress string, passwordHash string) error {
 
 	insertStmnt :=
 		`insert into users (external_id)
