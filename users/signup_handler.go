@@ -69,7 +69,7 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 		// 	return c.SendStatus(fiber.StatusCreated)
 		// }
 
-		return c.Redirect("/", fiber.StatusSeeOther)
+		return c.Redirect("/", fiber.StatusFound)
 	}
 
 }
