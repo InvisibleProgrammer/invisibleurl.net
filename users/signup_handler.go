@@ -43,33 +43,33 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 
 		isExists, err := userRepository.Is_Exists(emailAddress)
 		if err != nil {
-			log.Info("sign-up: %s failed: %v", emailAddress, err)
+			log.Infof("sign-up: %s failed: %v", emailAddress, err)
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
 		if isExists {
-			log.Info("sign-up: %s failed: email is already registered", emailAddress)
+			log.Infof("sign-up: %s failed: email is already registered", emailAddress)
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
 		publicId := uuid.New()
 		passwordHash, err := hashPassword(password)
 		if err != nil {
-			log.Info("sign-up: %s failed: error on password hashing: %v", emailAddress, err)
+			log.Infof("sign-up: %s failed: error on password hashing: %v", emailAddress, err)
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if err = userRepository.StoreUser(publicId, emailAddress, &passwordHash); err != nil {
-			log.Info("sign-up: %s failed: %v", emailAddress, err)
+		if err = userRepository.StoreUser(publicId, emailAddress, passwordHash); err != nil {
+			log.Infof("sign-up: %s failed: %v", emailAddress, err)
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if err = sendVerificationEmail(publicId, emailAddress); err != nil {
-			log.Info("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
-			return c.SendStatus(fiber.StatusCreated)
-		}
+		// if err = sendVerificationEmail(publicId, emailAddress); err != nil {
+		// 	log.Info("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
+		// 	return c.SendStatus(fiber.StatusCreated)
+		// }
 
-		return c.SendStatus(fiber.StatusCreated)
+		return c.Redirect("/", fiber.StatusSeeOther)
 	}
 
 }
@@ -80,5 +80,7 @@ func hashPassword(password string) (*string, error) {
 		return nil, err
 	}
 
-	return passwordHash, nil
+	hashString := string(passwordHash)
+
+	return &hashString, nil
 }

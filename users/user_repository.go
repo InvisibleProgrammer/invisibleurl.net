@@ -1,6 +1,9 @@
 package users
 
-import "invisibleprogrammer.com/invisibleurl/db"
+import (
+	"github.com/google/uuid"
+	"invisibleprogrammer.com/invisibleurl/db"
+)
 
 type UserRepository struct {
 	db *db.Repository
@@ -26,6 +29,10 @@ func (repository *UserRepository) Is_Exists(emailAddress string) (bool, error) {
 		return false, err
 	}
 
+	if !rows.Next() {
+		return false, nil
+	}
+
 	err = rows.Scan(&hasUser)
 	if err != nil {
 		return false, err
@@ -34,17 +41,19 @@ func (repository *UserRepository) Is_Exists(emailAddress string) (bool, error) {
 	return hasUser == 1, nil
 }
 
-func (repository *UserRepository) StoreUser(publicId string, emailAddress string, passwordHash string) error {
+func (repository *UserRepository) StoreUser(publicId uuid.UUID, emailAddress string, passwordHash *string) error {
 
 	insertStmnt :=
-		`insert into users (external_id)
-		 select :externalUserId 
+		`insert into users (public_id, email_address, password_hash, user_status)
+		 select :publicId, :emailAddress, :passwordHash, 0
 		 where not exists (
-			select 1 from users where external_id = :externalUserId
+			select 1 from users where public_id = :publicId
 		 )`
 
 	parameter := map[string]interface{}{
-		"externalUserId": externalUserId,
+		"publicId":     publicId,
+		"emailAddress": emailAddress,
+		"passwordHash": passwordHash,
 	}
 
 	_, err := repository.db.Db.NamedExec(insertStmnt, parameter)
