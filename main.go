@@ -2,17 +2,17 @@ package main
 
 import (
 	"encoding/gob"
+	"log/slog"
 	"os"
-
-	"golang.org/x/exp/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
+	"github.com/lmittmann/tint"
+	slogfiber "github.com/samber/slog-fiber"
 	"invisibleprogrammer.com/invisibleurl/authenticator"
 	repository "invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/routing"
@@ -22,8 +22,8 @@ import (
 
 func main() {
 
-	handler := slog.NewJSONHandler(os.Stdout, nil)
-	log := slog.New(handler)
+	logger := slog.New(tint.NewHandler(os.Stdout, nil))
+	log := slog.New(logger.Handler())
 
 	log.Info("Starting Fiber application",
 		slog.String("version", "v2.52.1"),
@@ -71,13 +71,8 @@ func main() {
 	})
 
 	app.Use(requestid.New())
-	app.Use(logger.New(logger.Config{
-		Format: `{"time":"${time}","level":"INFO","msg":"Incoming request","request.time":"${time}","request.method":"${method}","request.host":"${host}","request.path":"${path}","request.query":"${query}","request.params":"${params}","request.route":"${route}","request.ip":"${ip}","request.x-forwarded-for":"${ips}","request.referer":"${referer}","request.length":${bytesReceived},"response.time":"${time}","response.latency":"${latency}","response.status":${status},"response.length":${bytesSent},"id":"${locals:requestid}"}` + "\n",
-	}))
 
-	app.Use(logger.New(logger.Config{
-		Format: `{"time":"${time}","level":"INFO","msg":"Incoming request","request.time":"${time}","request.method":"${method}","request.host":"${host}","request.path":"${path}","request.query":"${query}","request.params":"${params}","request.route":"${route}","request.ip":"${ip}","request.x-forwarded-for":"${ips}","request.referer":"${referer}","request.length":${bytesReceived},"response.time":"${time}","response.latency":"${latency}","response.status":${status},"response.length":${bytesSent},"id":"${locals:requestid}"}` + "\n",
-	}))
+	app.Use(slogfiber.New(logger))
 
 	// Show authenticated user name on header partial
 	users.RegisterUsernameMiddleware(app, store)
