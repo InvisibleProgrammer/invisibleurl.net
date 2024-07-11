@@ -1,6 +1,8 @@
 package users
 
 import (
+	"net/smtp"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -64,10 +66,10 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		// if err = sendVerificationEmail(publicId, emailAddress); err != nil {
-		// 	log.Info("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
-		// 	return c.SendStatus(fiber.StatusCreated)
-		// }
+		if err = sendVerificationEmail(publicId, emailAddress); err != nil {
+			log.Infof("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
+			return c.SendStatus(fiber.StatusCreated)
+		}
 
 		return c.Redirect("/", fiber.StatusFound)
 	}
@@ -83,4 +85,23 @@ func hashPassword(password string) (*string, error) {
 	hashString := string(passwordHash)
 
 	return &hashString, nil
+}
+
+func sendVerificationEmail(publicId uuid.UUID, emailAddress string) error {
+	host := "localhost:1025"
+	from := "noreply@invisibleurl.net"
+	to := emailAddress
+	subject := "InvisibleURL.Net - Activate your email address"
+	body := "Test body " + publicId.String()
+
+	msg := "From: " + from + "\n" +
+		"To: " + to + "\n" +
+		"Subject: " + subject + "\n\n" +
+		body
+
+	auth := smtp.PlainAuth("", "", "", "localhost")
+
+	err := smtp.SendMail(host, auth, from, []string{to}, []byte(msg))
+
+	return err
 }
