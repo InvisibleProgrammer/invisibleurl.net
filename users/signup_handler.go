@@ -1,6 +1,8 @@
 package users
 
 import (
+	"crypto/rand"
+	"fmt"
 	"net/smtp"
 
 	"github.com/gofiber/fiber/v2"
@@ -104,4 +106,31 @@ func sendVerificationEmail(publicId uuid.UUID, emailAddress string) error {
 	err := smtp.SendMail(host, auth, from, []string{to}, []byte(msg))
 
 	return err
+}
+
+func generateActivationTicket(userId int64, userRepository *UserRepository) (*string, error) {
+
+	attempt := 10
+
+	for attempt > 0 {
+		token := generateToken()
+
+		if !userRepository.ContainsActivationTicket(userId, token) {
+			return token, nil
+		}
+	}
+
+	return nil, fmt.Errorf("error in generating activation ticket: attempt limit reached")
+}
+
+func generateToken() (*string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	token := make([]byte, 50)
+
+	_, err := rand.Read(token)
+	if err != nil {
+		return nil, fmt.Errorf("error on token generation")
+	}
+
 }
