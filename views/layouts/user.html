@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <title>InvisibleUrl</title>
+        <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    </head>
+
+    <body>
+        <div hx-boost="true">
+            {{ template "partials/header_user" .}}
+            {{ embed }}
+            {{ template "partials/footer" .}}
+        </div>
+    </body>
+
+</html>
