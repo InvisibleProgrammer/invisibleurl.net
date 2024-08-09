@@ -3,6 +3,7 @@ package users
 import (
 	"crypto/rand"
 	"fmt"
+	"math/big"
 	"net/smtp"
 
 	"github.com/gofiber/fiber/v2"
@@ -63,12 +64,19 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if err = userRepository.StoreUser(publicId, emailAddress, passwordHash); err != nil {
+		var userId int64
+		if userId, err = userRepository.StoreUser(publicId, emailAddress, passwordHash); err != nil {
 			log.Infof("sign-up: %s failed: %v", emailAddress, err)
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if err = sendVerificationEmail(publicId, emailAddress); err != nil {
+		var activationTicket *string
+		if activationTicket, err = generateActivationTicket(userId, userRepository); err != nil {
+			log.Infof("sign-up: %s failed: error on creating activation ticket: %v", emailAddress, err)
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+
+		if err = sendVerificationEmail(publicId, emailAddress, *activationTicket); err != nil {
 			log.Infof("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
 			return c.SendStatus(fiber.StatusCreated)
 		}
@@ -89,12 +97,12 @@ func hashPassword(password string) (*string, error) {
 	return &hashString, nil
 }
 
-func sendVerificationEmail(publicId uuid.UUID, emailAddress string) error {
+func sendVerificationEmail(publicId uuid.UUID, emailAddress string, activationTicket string) error {
 	host := "localhost:1025"
 	from := "noreply@invisibleurl.net"
 	to := emailAddress
 	subject := "InvisibleURL.Net - Activate your email address"
-	body := "Test body " + publicId.String()
+	body := fmt.Sprintf("Please activate: https://localhost:3000/user/activate/%s", activationTicket)
 
 	msg := "From: " + from + "\n" +
 		"To: " + to + "\n" +
@@ -110,27 +118,35 @@ func sendVerificationEmail(publicId uuid.UUID, emailAddress string) error {
 
 func generateActivationTicket(userId int64, userRepository *UserRepository) (*string, error) {
 
-	attempt := 10
+	for attempt := 10; attempt > 0; attempt-- {
+		token, err := generateToken()
 
-	for attempt > 0 {
-		token := generateToken()
-
-		if !userRepository.ContainsActivationTicket(userId, token) {
-			return token, nil
+		if err != nil {
+			return nil, err
 		}
+
+		if err = userRepository.StoreActivationTicket(userId, token); err != nil {
+			log.Infof("couldn't generate activation ticket for user: %d, attempt: %d", userId, 10-attempt+1)
+			continue
+		}
+
+		return token, nil
 	}
 
 	return nil, fmt.Errorf("error in generating activation ticket: attempt limit reached")
 }
 
 func generateToken() (*string, error) {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-	token := make([]byte, 50)
-
-	_, err := rand.Read(token)
-	if err != nil {
-		return nil, fmt.Errorf("error on token generation")
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	result := make([]byte, 50)
+	for i := range result {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = charset[num.Int64()]
 	}
 
+	stringToken := string(result)
+	return &stringToken, nil
 }

@@ -18,7 +18,7 @@ create table user_activation (
     user_id bigint not null,
     activation_ticket varchar(50) not null,
     constraint PK_user_activation primary key (user_id)
-)
+);
 
 RAISE NOTICE 'Creating table "ShortUrls"...';
 create table short_urls (

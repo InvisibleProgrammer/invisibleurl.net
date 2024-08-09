@@ -25,6 +25,7 @@ Run:
 ```bash
 brew services run mailhog
 ```
+**Note**: Web UI: http://localhost:8025/
 
 ### To run the tests:
 
