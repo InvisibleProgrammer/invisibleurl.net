@@ -32,14 +32,14 @@ func main() {
 
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		log.Error("Failed to load the env vars: %v", err)
+		log.Error("Failed to load the env vars: %v", slog.Any("err", err))
 	}
 	godotenv.Load(".env")
 
 	// Initialize repositories
 	repository, err := repository.NewRepository()
 	if err != nil {
-		log.Error("Failed to initialize db: %v\n", err)
+		log.Error("Failed to initialize db: %v", slog.Any("err", err))
 	}
 
 	userRepository := users.NewUserRepository(repository)

@@ -76,7 +76,7 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if err = sendVerificationEmail(publicId, emailAddress, *activationTicket); err != nil {
+		if err = sendVerificationEmail(emailAddress, *activationTicket); err != nil {
 			log.Infof("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
 			return c.SendStatus(fiber.StatusCreated)
 		}
@@ -97,7 +97,7 @@ func hashPassword(password string) (*string, error) {
 	return &hashString, nil
 }
 
-func sendVerificationEmail(publicId uuid.UUID, emailAddress string, activationTicket string) error {
+func sendVerificationEmail(emailAddress string, activationTicket string) error {
 	host := "localhost:1025"
 	from := "noreply@invisibleurl.net"
 	to := emailAddress
