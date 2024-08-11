@@ -102,7 +102,7 @@ func sendVerificationEmail(publicId uuid.UUID, emailAddress string, activationTi
 	from := "noreply@invisibleurl.net"
 	to := emailAddress
 	subject := "InvisibleURL.Net - Activate your email address"
-	body := fmt.Sprintf("Please activate: https://localhost:3000/user/activate/%s", activationTicket)
+	body := fmt.Sprintf("Please activate: http://localhost:3000/user/activate/%s", activationTicket)
 
 	msg := "From: " + from + "\n" +
 		"To: " + to + "\n" +
