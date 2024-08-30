@@ -20,8 +20,8 @@ func RegisterRoutes(
 	app.Get("/user", users.UserHandler(store))
 	app.Get("/user/sign-up", users.GetSignUpHandler())
 	app.Post("/user/sign-up", users.PostSignUpHHandler(store, userRepository))
-	app.Get("/user/login", users.LoginHandler(store))
-	app.Get("/user/logout", users.LogoutHandler(store))
+	app.Get("/user/sign-in", users.GetSignInHandler())
+	app.Post("/user/sign-in", users.SignInHandler(store, userRepository))
 	app.Get("/user/activate/:activationTicket", users.ActivationHandler(store, userRepository))
 
 	urlShortener := urlshortener.NewUrlShortener(urlShortenerRepository)

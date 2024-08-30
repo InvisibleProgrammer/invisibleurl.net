@@ -15,7 +15,7 @@ func IsAuthenticatedHandler(store *session.Store) fiber.Handler {
 			log.Fatalf("Couldn't receive session: %v", err)
 		}
 
-		if session.Get("profile") == nil {
+		if session.Get("userId") == nil {
 			return c.Redirect("/", http.StatusSeeOther)
 		} else {
 			return c.Next()
@@ -31,7 +31,7 @@ func RegisterUsernameMiddleware(app *fiber.App, store *session.Store) {
 			log.Fatalf("Couldn't receive sesion: %v", err)
 		}
 
-		c.Locals("name", session.Get("name"))
+		c.Locals("emailAddress", session.Get("emailAddress"))
 
 		return c.Next()
 	})

@@ -8,6 +8,7 @@ type User struct {
 	EmailAddress string
 	Activated    bool
 	Status       int8
+	PasswordHash string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

@@ -36,7 +36,7 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		err = validatePassword(password, passwordAgain)
+		err = validateConfirmPassword(password, passwordAgain)
 		if err != nil {
 			c.SendString(err.Error())
 			c.SendStatus(fiber.StatusBadRequest)
