@@ -23,6 +23,7 @@ func RegisterRoutes(
 	app.Get("/user/sign-in", users.GetSignInHandler())
 	app.Post("/user/sign-in", users.SignInHandler(store, userRepository))
 	app.Get("/user/activate/:activationTicket", users.ActivationHandler(store, userRepository))
+	app.Get("/user/sign-out", users.SignOutHandler(store))
 
 	urlShortener := urlshortener.NewUrlShortener(urlShortenerRepository)
 	app.Get("/:shortUrl", urlshortener.RedirectShortUrlHandler(urlShortener))
