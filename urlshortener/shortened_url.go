@@ -1,8 +1,8 @@
 package urlshortener
 
 type ShortenedUrl struct {
-	UserId   string
-	UrlId    int
-	FullUrl  string
-	ShortUrl string
+	UserId   int64  `db:"user_id"`
+	UrlId    int    `db:"short_url_id"`
+	FullUrl  string `db:"full_url"`
+	ShortUrl string `db:"short_url"`
 }

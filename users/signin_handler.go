@@ -68,7 +68,7 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 		}
 
 		session.Set("state", state)
-		session.Set("userId", user.PublicId)
+		session.Set("publicId", user.PublicId)
 		session.Set("emailAddress", user.EmailAddress)
 
 		if err := session.Save(); err != nil {

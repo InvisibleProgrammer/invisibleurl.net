@@ -28,5 +28,5 @@ func RegisterRoutes(
 	urlShortener := urlshortener.NewUrlShortener(urlShortenerRepository)
 	app.Get("/:shortUrl", urlshortener.RedirectShortUrlHandler(urlShortener))
 	app.Delete("/shortUrl/:shortUrl", users.IsAuthenticatedHandler(store), urlshortener.DeleteShortHandler(store))
-	app.Post("/makeShort", users.IsAuthenticatedHandler(store), urlshortener.MakeShortHandler(store, urlShortener))
+	app.Post("/makeShort", users.IsAuthenticatedHandler(store), urlshortener.MakeShortHandler(store, userRepository, urlShortenerRepository, urlShortener))
 }

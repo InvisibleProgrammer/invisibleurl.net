@@ -15,7 +15,7 @@ func IsAuthenticatedHandler(store *session.Store) fiber.Handler {
 			log.Fatalf("Couldn't receive session: %v", err)
 		}
 
-		if session.Get("userId") == nil {
+		if session.Get("publicId") == nil {
 			return c.Redirect("/", http.StatusSeeOther)
 		} else {
 			return c.Next()

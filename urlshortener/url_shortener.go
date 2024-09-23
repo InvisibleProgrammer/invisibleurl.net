@@ -33,20 +33,11 @@ func (urlShortener *UrlShortener) GetFullUrl(short string) (string, error) {
 	return "", errors.New("couldn't find short URL")
 }
 
-func (urlShortener *UrlShortener) MakeShortUrl(userId string, fullUrl string) (string, error) {
-	return "", nil
-	// encoded := base62Encode(nextUrlId)
-	// log.Default().Printf("encoded: %s", encoded)
+func (urlShortener *UrlShortener) MakeShortUrl(nextUrlId int64) (string, error) {
+	encoded := base62Encode(nextUrlId)
+	log.Default().Printf("encoded: %s", encoded)
 
-	// shortenedUrls = append(shortenedUrls, ShortenedUrl{
-	// 	UserId:      userId,
-	// 	UrlId:       nextUrlId,
-	// 	FullUrl:     fullUrl,
-	// 	OriginalUrl: fullUrl,
-	// 	ShortUrl:    encoded,
-	// })
-
-	// return encoded, nil
+	return encoded, nil
 }
 
 func DeleteShortUrl(userId string, shortUrl string) error {
@@ -73,7 +64,7 @@ func DeleteShortUrl(userId string, shortUrl string) error {
 	// return fmt.Errorf("couldn't find short URL: %s", shortUrl)
 }
 
-func base62Encode(id int) string {
+func base62Encode(id int64) string {
 	alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	var encoded strings.Builder
@@ -84,16 +75,4 @@ func base62Encode(id int) string {
 	}
 
 	return encoded.String()
-}
-
-func getnextUrlId(shortenedUrls []ShortenedUrl) int {
-	maxId := 20_000_000 // We start from this value to make sure the shortened version's length at least 5
-
-	for _, v := range shortenedUrls {
-		if v.UrlId > maxId {
-			maxId = v.UrlId
-		}
-	}
-
-	return maxId + 1
 }

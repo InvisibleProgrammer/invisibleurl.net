@@ -42,28 +42,42 @@ func (repository *UrlShortenerRepository) GetAll() ([]ShortenedUrl, error) {
 	return shortUrls, nil
 }
 
-func (repository *UrlShortenerRepository) Store(ShortenedUrl) ([]ShortenedUrl, error) {
+func (repository *UrlShortenerRepository) Store(shortenedUrl ShortenedUrl) error {
 
-	selectStmnt := `insert into short_urls (user_id, full_url) values (Todo: how named parameters are working?)`
+	insertStmnt := `insert into short_urls (short_url_id, user_id, full_url, short_url) values (:shortUrlId, :userId, :fullUrl, :shortUrl)`
 
-	rows, err := repository.db.Db.Queryx(selectStmnt)
+	parameters := map[string]interface{}{
+		"shortUrlId": shortenedUrl.UrlId,
+		"userId":     shortenedUrl.UserId,
+		"fullUrl":    shortenedUrl.FullUrl,
+		"shortUrl":   shortenedUrl.ShortUrl,
+	}
+
+	_, err := repository.db.Db.NamedExec(insertStmnt, parameters)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var shortUrl ShortenedUrl
-	var shortUrls []ShortenedUrl
+	return nil
+}
 
-	for rows.Next() {
-		err := rows.StructScan(&shortUrl)
+func (repository *UrlShortenerRepository) GetNextUrlId() (int64, error) {
+	selectStmnt := `select nextval('short_url_seq')`
 
-		if err != nil {
-			log.Fatalln(err)
-			return nil, err
-		}
-
-		shortUrls = append(shortUrls, shortUrl)
+	rows, err := repository.db.Db.Query(selectStmnt)
+	if err != nil {
+		return 0, err
 	}
 
-	return shortUrls, nil
+	if !rows.Next() {
+		return 0, err
+	}
+
+	var nextUrlId int64
+	err = rows.Scan(&nextUrlId)
+	if err != nil {
+		return 0, err
+	}
+
+	return nextUrlId, nil
 }

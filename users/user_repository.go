@@ -225,3 +225,41 @@ func (repository *UserRepository) Get_User_by_Email(emailAddress string) (*User,
 
 	return &user, nil
 }
+
+func (repository *UserRepository) Get_UserId_by_PublicId(publicId string) (*User, error) {
+	selectStmnt := `select user_id, email_address, password_hash, user_status from users where public_id = :publicId and user_status in (0, 1)`
+
+	parameters := map[string]interface{}{
+		"publicId": publicId,
+	}
+
+	rows, err := repository.db.Db.NamedQuery(selectStmnt, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	if !rows.Next() {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	var userId int64
+	var emailAddress string
+	var passwordHash string
+	var userStatus int8
+	err = rows.Scan(&userId, &emailAddress, &passwordHash, &userStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	activated := userStatus == 1
+	user := User{
+		Id:           userId,
+		PublicId:     publicId,
+		EmailAddress: emailAddress,
+		Activated:    activated,
+		PasswordHash: passwordHash,
+		Status:       userStatus,
+	}
+
+	return &user, nil
+}
