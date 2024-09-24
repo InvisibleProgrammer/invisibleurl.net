@@ -33,7 +33,7 @@ create unique index uniq_short_urls_short_url on short_urls (short_url);
 
 create index idx_short_urls_user_id on short_urls (user_id);
 
-RAISE NOTICE 'Creteing sequence short_url_seq'
+RAISE NOTICE 'Creteing sequence short_url_seq';
 create sequence if not exists short_url_seq
     as bigint
     increment by 1

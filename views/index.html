@@ -33,7 +33,7 @@ most recent URLS - logged in
     </form>
     {{ range .ShortURLs }}
 
-    <li id="{{ .ShortUrl }}">{{ .FullUrl }} - {{ .ShortUrl }}<input type="button" value="delete" onclick="deleteShortUrlAndRedirectToHome( '{{ .ShortUrl }}' )" /></li>
+    <li id="{{ .ShortUrl }}"><a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a> <input type="button" value="delete" onclick="deleteShortUrlAndRedirectToHome( '{{ .ShortUrl }}' )" /></li>
 
     {{ end }}
 </ul>
@@ -48,7 +48,7 @@ most recent URLS:
 <ul>
     {{ range .ShortURLs }}
 
-        <li>{{ .FullUrl }} - {{ .ShortUrl }}</li>
+    <li id="{{ .ShortUrl }}"><a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a></li>
 
     {{ end }}
 </ul>
