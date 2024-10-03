@@ -1,28 +1,5 @@
 <h1>{{.Title}}</h1>
 
-<script >
-    function deleteShortUrlAndRedirectToHome(shortUrl) {
-        const url = "http://localhost:3000/shortUrl/" + shortUrl;
-        console.log(url)
-
-        const response = fetch(url, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            }
-        }).then(response => {
-            const item = document.getElementById(shortUrl);
-            if (item) {
-                item.remove();
-            }
-        })
-
-        console.log(response)
-
-    }
-</script>
-
-
 {{ if .emailAddress }} 
 
 most recent URLS - logged in
@@ -33,7 +10,10 @@ most recent URLS - logged in
     </form>
     {{ range .ShortURLs }}
 
-    <li id="{{ .ShortUrl }}"><a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a> <input type="button" value="delete" onclick="deleteShortUrlAndRedirectToHome( '{{ .ShortUrl }}' )" /></li>
+    <li id="{{ .ShortUrl }}">
+        <a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a> 
+        <button hx-target="closest li" hx-delete="/shortUrl/{{ .ShortUrl }}" hx-swap="outerHTML" >Delete</button>
+    </li>
 
     {{ end }}
 </ul>

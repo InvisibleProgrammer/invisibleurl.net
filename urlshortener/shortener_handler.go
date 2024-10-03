@@ -67,7 +67,7 @@ func MakeShortHandler(store *session.Store, userRepository *users.UserRepository
 	}
 }
 
-func DeleteShortHandler(store *session.Store) fiber.Handler {
+func DeleteShortHandler(store *session.Store, userRepository *users.UserRepository, urlShoUrlShortenerRepository *UrlShortenerRepository, urlShortener *UrlShortener) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
 		session, err := store.Get(c)
@@ -75,11 +75,10 @@ func DeleteShortHandler(store *session.Store) fiber.Handler {
 			log.Fatalf("Couldn't receive session: %v", err)
 		}
 
-		userId := session.Get("userId")
-
 		shortUrl := c.Params("shortUrl")
+		publicId := session.Get("publicId")
 
-		err = DeleteShortUrl(userId.(string), shortUrl)
+		user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
 		if err != nil {
 			errorMessage := fmt.Sprintf("Error on deleting %s: %v", shortUrl, err)
 			log.Print(errorMessage)
@@ -89,8 +88,18 @@ func DeleteShortHandler(store *session.Store) fiber.Handler {
 			})
 		}
 
-		return c.SendStatus(fiber.StatusOK)
+		err = urlShoUrlShortenerRepository.DeleteShortUrl(user.Id, shortUrl)
+		if err != nil {
+			errorMessage := fmt.Sprintf("Error on deleting %s: %v", shortUrl, err)
+			log.Print(errorMessage)
 
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": errorMessage,
+			})
+		}
+
+		c.SendStatus(fiber.StatusOK)
+		return c.SendString("")
 	}
 }
 

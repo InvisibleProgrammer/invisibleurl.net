@@ -40,30 +40,6 @@ func (urlShortener *UrlShortener) MakeShortUrl(nextUrlId int64) (string, error) 
 	return encoded, nil
 }
 
-func DeleteShortUrl(userId string, shortUrl string) error {
-	// panic("not implemented yet")
-	log.Println("not implemented yet")
-
-	return nil
-	// for i := 0; i < len(shortenedUrls); i++ {
-	// 	if shortenedUrls[i].UserId == "" {
-	// 		break
-	// 	}
-
-	// 	if shortenedUrls[i].ShortUrl == shortUrl {
-	// 		if shortenedUrls[i].UserId != userId {
-	// 			return fmt.Errorf("cannot delete %s: user has no such short URL", shortUrl)
-	// 		}
-
-	// 		shortenedUrls = append(shortenedUrls[:i], shortenedUrls[i+1:]...)
-	// 		return nil
-	// 	}
-
-	// }
-
-	// return fmt.Errorf("couldn't find short URL: %s", shortUrl)
-}
-
 func base62Encode(id int64) string {
 	alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

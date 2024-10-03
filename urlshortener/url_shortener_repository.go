@@ -81,3 +81,19 @@ func (repository *UrlShortenerRepository) GetNextUrlId() (int64, error) {
 
 	return nextUrlId, nil
 }
+
+func (repository *UrlShortenerRepository) DeleteShortUrl(userId int64, shortUrl string) error {
+	deleteStmnt := `delete from short_urls where user_id = :userId and short_url = :shortUrl`
+
+	parameters := map[string]interface{}{
+		"userId":   userId,
+		"shortUrl": shortUrl,
+	}
+
+	_, err := repository.db.Db.NamedExec(deleteStmnt, parameters)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
