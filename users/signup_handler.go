@@ -2,15 +2,19 @@ package users
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"net/http"
 	"net/smtp"
+	"net/url"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"invisibleprogrammer.com/invisibleurl/environment"
 )
 
 func GetSignUpHandler() fiber.Handler {
@@ -20,6 +24,13 @@ func GetSignUpHandler() fiber.Handler {
 	}
 }
 
+type RecaptchaResponse struct {
+	Success     bool     `json:"success"`
+	ChallengeTS string   `json:"challenge_ts"`
+	Hostname    string   `json:"hostname"`
+	ErrorCodes  []string `json:"error-codes,omitempty"`
+}
+
 func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
@@ -27,17 +38,21 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 		emailAddress := c.FormValue("emailAddress")
 		password := c.FormValue("password")
 		passwordAgain := c.FormValue("passwordAgain")
+		captchaResponse := c.FormValue("g-recaptcha-response")
+
+		if err := verifyCaptcha(captchaResponse); err != nil {
+			c.SendString(err.Error())
+			c.SendStatus(fiber.StatusBadRequest)
+		}
 
 		log.Info(emailAddress)
 
-		err := validateEmail(emailAddress)
-		if err != nil {
+		if err := validateEmail(emailAddress); err != nil {
 			c.SendString("invalid email")
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		err = validateConfirmPassword(password, passwordAgain)
-		if err != nil {
+		if err := validateConfirmPassword(password, passwordAgain); err != nil {
 			c.SendString(err.Error())
 			c.SendStatus(fiber.StatusBadRequest)
 		}
@@ -84,6 +99,31 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 		return c.Redirect("/", fiber.StatusFound)
 	}
 
+}
+
+func verifyCaptcha(captchaResponse string) error {
+
+	resp, err := http.PostForm(environment.RECAPTCHA_VERIFY_URL, url.Values{
+		"secret":   {environment.RECAPTCHA_SECRET},
+		"response": {captchaResponse},
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to verify reCAPTCHA")
+	}
+	defer resp.Body.Close()
+
+	var recaptchaResponse RecaptchaResponse
+	if err := json.NewDecoder(resp.Body).Decode(&recaptchaResponse); err != nil {
+		return fmt.Errorf("failed to parse reCAPTCHA response")
+	}
+
+	log.Infof("Recaptcha success: %t", recaptchaResponse.Success)
+
+	if !recaptchaResponse.Success {
+		return fmt.Errorf("reCAPTCHA verification failed")
+	}
+	return nil
 }
 
 func hashPassword(password string) (*string, error) {

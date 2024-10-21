@@ -9,10 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
-	"github.com/joho/godotenv"
 	"github.com/lmittmann/tint"
 	slogfiber "github.com/samber/slog-fiber"
 	repository "invisibleprogrammer.com/invisibleurl/db"
+	"invisibleprogrammer.com/invisibleurl/environment"
 	"invisibleprogrammer.com/invisibleurl/routing"
 	"invisibleprogrammer.com/invisibleurl/urlshortener"
 	"invisibleprogrammer.com/invisibleurl/users"
@@ -30,11 +30,7 @@ func main() {
 		slog.Int("port", 3000),
 		slog.Int("pid", os.Getpid()))
 
-	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Error("Failed to load the env vars: %v", slog.Any("err", err))
-	}
-	godotenv.Load(".env")
+	environment.Init()
 
 	// Initialize repositories
 	repository, err := repository.NewRepository()
@@ -68,13 +64,6 @@ func main() {
 
 	// Show authenticated user name on header partial
 	users.RegisterUsernameMiddleware(app, store)
-
-	// app.Use(cors.New(cors.Config{
-	// 	AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
-	// 	AllowOrigins:     "http://localhost:3000",
-	// 	AllowCredentials: true,
-	// 	AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
-	// }))
 
 	// Set up routing
 	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository)
