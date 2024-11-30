@@ -7,12 +7,19 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"golang.org/x/crypto/bcrypt"
+	"invisibleprogrammer.com/invisibleurl/environment"
 )
 
 func GetSignInHandler() fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
-		return c.Render("users/sign-in", fiber.Map{}, "layouts/user")
+		recaptchaSite := environment.RECAPTCHA_SITE
+		needCaptcha := c.QueryBool("needCaptcha", false)
+
+		return c.Render("users/sign-in", fiber.Map{
+			"needCaptcha":   needCaptcha,
+			"recaptchaSite": recaptchaSite,
+		}, "layouts/user")
 	}
 }
 
@@ -22,6 +29,13 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 
 		emailAddress := c.FormValue("emailAddress")
 		password := c.FormValue("password")
+		captchaResponse := c.FormValue("g-recaptcha-response")
+		haveCaptchaResponse := len(captchaResponse) > 0
+
+		if err := verifyCaptcha(captchaResponse); err != nil {
+			c.SendString(err.Error())
+			c.SendStatus(fiber.StatusBadRequest)
+		}
 
 		log.Info(emailAddress)
 
@@ -46,7 +60,6 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 
 		if !user.Activated {
 			log.Errorf("cannot log in %s: user is not activated", emailAddress)
-			c.SendString(err.Error())
 			return c.SendStatus(http.StatusInternalServerError)
 		}
 
@@ -54,6 +67,24 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 			log.Errorf("password validation failed: %v", err.Error())
 			c.SendString(err.Error())
 			return c.SendStatus(http.StatusInternalServerError)
+		}
+
+		remoteIP := c.Context().RemoteIP()
+		if remoteIP == nil {
+			message := "IP address check failed: remote IP is not provided"
+			log.Error(message)
+			return c.SendStatus(http.StatusInternalServerError)
+		}
+
+		knownIP, err := userRepository.Is_Known_IP(user.Id, remoteIP)
+		if err != nil {
+			log.Errorf("IP address check failed: %v", err.Error())
+			c.SendString(err.Error())
+			return c.SendStatus(http.StatusInternalServerError)
+		}
+
+		if !knownIP && !haveCaptchaResponse {
+			return c.Redirect("/user/sign-in?needCaptcha=true")
 		}
 
 		state, err := generateRandomState()
@@ -74,6 +105,10 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 		if err := session.Save(); err != nil {
 			c.SendString(err.Error())
 			return c.SendStatus(http.StatusInternalServerError)
+		}
+
+		if err := userRepository.StoreNewIP(user.Id, remoteIP); err != nil {
+			log.Warnf("Couldn't store new IP location for user: %d, remoteIP: %s", user.Id, remoteIP.String())
 		}
 
 		return c.Redirect("/", fiber.StatusFound)

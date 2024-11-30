@@ -11,6 +11,7 @@ import (
 // Recaptcha
 var RECAPTCHA_SECRET string
 var RECAPTCHA_VERIFY_URL string
+var RECAPTCHA_SITE string
 
 func Init() {
 	// Load environment variables
@@ -21,4 +22,5 @@ func Init() {
 
 	RECAPTCHA_SECRET = os.Getenv("RECAPTCHA_SECRET")
 	RECAPTCHA_VERIFY_URL = os.Getenv("RECAPTCHA_VERIFY_URL")
+	RECAPTCHA_SITE = os.Getenv("RECAPTCHA_SITE")
 }

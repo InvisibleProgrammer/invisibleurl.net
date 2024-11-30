@@ -3,6 +3,8 @@ package users
 import (
 	"database/sql"
 	"fmt"
+	"net"
+	"time"
 
 	"github.com/google/uuid"
 	"invisibleprogrammer.com/invisibleurl/db"
@@ -262,4 +264,53 @@ func (repository *UserRepository) Get_UserId_by_PublicId(publicId string) (*User
 	}
 
 	return &user, nil
+}
+
+func (repository *UserRepository) Is_Known_IP(userId int64, remoteIP net.IP) (bool, error) {
+	selectStmnt := `select 1 from last_known_ips where user_id = :userId and IP_Address = :remoteIP`
+
+	parameters := map[string]interface{}{
+		"userId":   userId,
+		"remoteIP": remoteIP,
+	}
+
+	rows, err := repository.db.Db.NamedQuery(selectStmnt, parameters)
+	if err != nil {
+		return false, err
+	}
+
+	if !rows.Next() {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (repository *UserRepository) StoreNewIP(userId int64, remoteIP net.IP) error {
+	insertStmnt := `insert into last_known_ips (user_id, ip_address, recorded_at, last_used)
+						select :userId, :remoteIP, :now, :now
+						where not exists (select 1 from last_known_ips where user_id = :userId and ip_address = :remoteIP)
+						`
+
+	parameters := map[string]interface{}{
+		"userId":   userId,
+		"remoteIP": remoteIP.String(),
+		"now":      time.Now(),
+	}
+
+	finalQuery := repository.db.Db.Rebind(insertStmnt)
+	fmt.Printf("Final Query: %s\n", finalQuery)
+	fmt.Printf("Parameters: %+v\n", parameters)
+
+	result, err := repository.db.Db.NamedExec(insertStmnt, parameters)
+
+	if err != nil {
+		return err
+	}
+
+	if affectedRows, err := result.RowsAffected(); err != nil || affectedRows == 0 {
+		return err
+	}
+
+	return nil
 }

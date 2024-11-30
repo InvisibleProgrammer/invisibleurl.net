@@ -1,5 +1,9 @@
-<form action="/user/sign-in" method="post">
+<form action="/user/sign-in" method="post" hx-disable>
     <input type="email" name="emailAddress" id="emailAddress">
     <input type="password" name="password" id="password">
+    
+    {{ if .needCaptcha }}
+<div class="g-recaptcha" data-sitekey="{{ .recaptchaSite }}"></div>
+    {{ end }}
     <button type="submit">Sign In</button>
 </form>

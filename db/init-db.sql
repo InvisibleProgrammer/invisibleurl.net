@@ -33,11 +33,21 @@ create unique index uniq_short_urls_short_url on short_urls (short_url);
 
 create index idx_short_urls_user_id on short_urls (user_id);
 
-RAISE NOTICE 'Creteing sequence short_url_seq';
+RAISE NOTICE 'Creating sequence short_url_seq';
 create sequence if not exists short_url_seq
     as bigint
     increment by 1
     minvalue 20000000
     start with 20000000;
+
+
+RAISE NOTICE 'Creating last_known_ips';
+create table last_known_ips (
+    user_id bigint not null,
+    IP_Address inet not null,
+    recorded_at timestamp with time zone not null,
+    last_used timestamp with time zone not null,
+    constraint pk_last_known_ips primary key (user_id, IP_Address)
+)
 
 END $$;
