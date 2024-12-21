@@ -36,18 +36,25 @@ func MakeShortHandler(store *session.Store, userRepository *users.UserRepository
 		}
 
 		fullUrl := c.FormValue("fullUrl")
+		shortUrl := c.FormValue("shortUrl")
+		if len(shortUrl) > 50 {
+			log.Printf("Short url is too long: %s", shortUrl)
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
 
 		shortUrlId, err := urlShortenerRepostiory.GetNextUrlId()
 		if err != nil {
 			log.Printf("Error on shortening: %v", err)
 			return c.SendStatus(fiber.StatusBadRequest)
-
 		}
 
-		shortUrl, err := urlShortener.MakeShortUrl(shortUrlId)
-		if err != nil {
-			log.Printf("Error on shortening: %v", err)
-			return c.SendStatus(fiber.StatusBadRequest)
+		if len(shortUrl) == 0 {
+			shortUrl, err = urlShortener.MakeShortUrl(shortUrlId)
+
+			if err != nil {
+				log.Printf("Error on shortening: %v", err)
+				return c.SendStatus(fiber.StatusBadRequest)
+			}
 		}
 
 		shortenedUrl := ShortenedUrl{

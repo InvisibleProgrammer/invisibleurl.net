@@ -8,9 +8,16 @@ most recent URLS - logged in
         <input type="text" name="fullUrl" id="fullUrl">
         <input type="submit" value="Shorten me!">
     </form>
+    <form action="/makeCustomShort" method="post">
+        <input type="text" name="fullUrl" id="fullUrl">
+        <input type="text" name="shortUrl" id="fullUrl">
+        <input type="submit" value="Shorten me!">
+    </form>
+
     {{ range .ShortURLs }}
 
     <li id="{{ .ShortUrl }}">
+        <b>{{ .ShortUrl }} - </b>
         <a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a> 
         <button hx-target="closest li" hx-delete="/shortUrl/{{ .ShortUrl }}" hx-swap="outerHTML" >Delete</button>
     </li>
@@ -28,7 +35,10 @@ most recent URLS:
 <ul>
     {{ range .ShortURLs }}
 
-    <li id="{{ .ShortUrl }}"><a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a></li>
+    <li id="{{ .ShortUrl }}">
+        <b>{{ .ShortUrl }} - </b>
+        <a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a>
+    </li>
 
     {{ end }}
 </ul>
