@@ -13,7 +13,8 @@ func RegisterRoutes(
 	userRepository *users.UserRepository,
 	urlShortenerRepository *urlshortener.UrlShortenerRepository) {
 
-	app.Get("/", urlshortener.DashboardHandler(urlShortenerRepository))
+	app.Get("/", urlshortener.DashboardHandler(store, userRepository, urlShortenerRepository))
+	app.Post("/filter/", users.IsAuthenticatedHandler(store), urlshortener.FilterHandler(store, userRepository, urlShortenerRepository))
 	app.Get("/healthcheck", HealthCheckHandler())
 	app.Get("/protected", users.IsAuthenticatedHandler(store), ProtectedHandler())
 

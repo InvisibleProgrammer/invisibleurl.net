@@ -1,0 +1,8 @@
+{{ range .ShortURLs }}
+    <li id="{{ .ShortUrl }}">
+        <b>{{ .ShortUrl }} - </b>
+        <a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a>
+        <button hx-target="closest li" hx-delete="/shortUrl/{{ .ShortUrl }}" hx-swap="outerHTML" hx-confirm="Are you sure?">Delete</button>
+    </li>
+
+{{ end }}

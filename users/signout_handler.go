@@ -20,6 +20,7 @@ func SignOutHandler(store *session.Store) fiber.Handler {
 		session.Delete("state")
 		session.Delete("userId")
 		session.Delete("emailAddress")
+		session.Delete("publicId")
 
 		if err := session.Save(); err != nil {
 			c.SendString(err.Error())

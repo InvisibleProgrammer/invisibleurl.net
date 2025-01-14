@@ -2,31 +2,40 @@
 
 {{ if .emailAddress }} 
 
-most recent URLS - logged in
-<ul>
+Shortened URLs
+
+Short URL:
     <form action="/makeShort" method="post">
         <input type="text" name="fullUrl" id="fullUrl">
         <input type="submit" value="Shorten me!">
     </form>
+    Create custom URL:
     <form action="/makeCustomShort" method="post">
         <input type="text" name="fullUrl" id="fullUrl">
         <input type="text" name="shortUrl" id="fullUrl">
         <input type="submit" value="Shorten me!">
     </form>
 
+    All shortend URLs:
+    
+    <input class="form-control" type="search"
+        name="search" placeholder="type to search"
+        hx-post="/filter"
+        hx-trigger="keyup changed delay:1s"
+        hx-params="search"
+        hx-target="#urls"
+    />
+<ul id="urls">
+    
     {{ range .ShortURLs }}
-
     <li id="{{ .ShortUrl }}">
         <b>{{ .ShortUrl }} - </b>
         <a target="_blank" href="http://localhost:3000/{{ .ShortUrl }}">{{ .FullUrl }}</a> 
-        <button hx-target="closest li" hx-delete="/shortUrl/{{ .ShortUrl }}" hx-swap="outerHTML" >Delete</button>
+        <button hx-target="closest li" hx-delete="/shortUrl/{{ .ShortUrl }}" hx-swap="outerHTML" hx-confirm="Are you sure?">Delete</button>
     </li>
 
     {{ end }}
 </ul>
-
-
-Shorten an URL
 
 {{ else }} 
 

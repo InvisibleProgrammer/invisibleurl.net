@@ -20,6 +20,93 @@ func NewShortenerHandler(urlshortener UrlShortener) *ShortenerHandler {
 	}
 }
 
+func FilterHandler(store *session.Store, userRepository *users.UserRepository, urlShortenerRepository *UrlShortenerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session, err := store.Get(c)
+		if err != nil {
+			log.Fatalf("Couldn't receive session: %v", err)
+		}
+
+		searchString := c.FormValue("search")
+
+		publicId := session.Get("publicId")
+		log.Printf("PublicId: %v\n", publicId)
+
+		user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
+		if err != nil {
+			errorMessage := fmt.Sprintf("Cannot get user by public id: %s", err)
+			log.Print(errorMessage)
+
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": errorMessage,
+			})
+		}
+
+		allUrls, err := urlShortenerRepository.GetPage(user.Id, 1, searchString)
+		log.Printf("allUrls count: %d\n", len(allUrls))
+
+		if err != nil {
+			c.SendStatus(fiber.StatusInternalServerError)
+			return fmt.Errorf("couldn't receive dahboard items: %v", err)
+		}
+
+		return c.Render("partials/manageurls", fiber.Map{
+			"Title":     "InvisibleUrl.Net",
+			"ShortURLs": allUrls,
+		}, "layouts/empty")
+	}
+}
+
+func DashboardHandler(store *session.Store, userRepository *users.UserRepository, urlShortenerRepository *UrlShortenerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session, err := store.Get(c)
+		if err != nil {
+			log.Fatalf("Couldn't receive session: %v", err)
+		}
+
+		searchString := c.FormValue("search")
+
+		publicId := session.Get("publicId")
+		log.Printf("PublicId: %v\n", publicId)
+
+		if publicId != nil {
+			user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
+			if err != nil {
+				errorMessage := fmt.Sprintf("Cannot get user by public id: %s", err)
+				log.Print(errorMessage)
+
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": errorMessage,
+				})
+			}
+
+			allUrls, err := urlShortenerRepository.GetPage(user.Id, 1, searchString)
+			log.Printf("allUrls count: %d\n", len(allUrls))
+
+			if err != nil {
+				c.SendStatus(fiber.StatusInternalServerError)
+				return fmt.Errorf("couldn't receive dahboard items: %v", err)
+			}
+
+			return c.Render("index", fiber.Map{
+				"Title":     "InvisibleUrl.Net",
+				"ShortURLs": allUrls,
+			})
+		}
+
+		allUrls, err := urlShortenerRepository.GetDashboard()
+		if err != nil {
+			c.SendStatus(fiber.StatusInternalServerError)
+			return fmt.Errorf("couldn't receive dahboard items")
+		}
+
+		return c.Render("index", fiber.Map{
+			"Title":     "InvisibleUrl.Net",
+			"ShortURLs": allUrls,
+		})
+	}
+}
+
 func MakeShortHandler(store *session.Store, userRepository *users.UserRepository, urlShortenerRepostiory *UrlShortenerRepository, urlShortener *UrlShortener) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session, err := store.Get(c)

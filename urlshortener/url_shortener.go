@@ -19,7 +19,7 @@ func NewUrlShortener(urlShortenerRepository *UrlShortenerRepository) *UrlShorten
 
 func (urlShortener *UrlShortener) GetFullUrl(short string) (string, error) {
 
-	allUrls, err := urlShortener.urlShortenerRepository.GetAll()
+	allUrls, err := urlShortener.urlShortenerRepository.GetDashboard()
 	if err != nil {
 		return "", fmt.Errorf("couldn't get the shortened urls: %v", err)
 	}

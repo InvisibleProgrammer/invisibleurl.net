@@ -16,9 +16,9 @@ func NewUrlShortenerRepository(db *db.Repository) *UrlShortenerRepository {
 	}
 }
 
-func (repository *UrlShortenerRepository) GetAll() ([]ShortenedUrl, error) {
+func (repository *UrlShortenerRepository) GetDashboard() ([]ShortenedUrl, error) {
 
-	selectStmnt := `select short_url_id, user_id, full_url, short_url from short_urls`
+	selectStmnt := `select short_url_id, user_id, full_url, short_url from short_urls limit 10`
 
 	rows, err := repository.db.Db.Queryx(selectStmnt)
 	if err != nil {
@@ -96,4 +96,46 @@ func (repository *UrlShortenerRepository) DeleteShortUrl(userId int64, shortUrl 
 	}
 
 	return nil
+}
+
+func (repository *UrlShortenerRepository) GetPage(userId int64, page int, filterExpression string) ([]ShortenedUrl, error) {
+	selectStmnt := `select short_url_id, user_id, full_url, short_url from short_urls where user_id = :userId`
+
+	if filterExpression != "" {
+		selectStmnt += ` and (full_url like :longURLfilterExpression or short_url like :shortURLfilterExpression)`
+	}
+
+	log.Println(selectStmnt)
+	// selectStmnt += ` limit 10`
+
+	filterExpression = string('%') + filterExpression + string('%')
+	parameters := map[string]interface{}{
+		"userId":                   userId,
+		"longURLfilterExpression":  filterExpression,
+		"shortURLfilterExpression": filterExpression,
+	}
+
+	log.Printf("%v", parameters)
+
+	rows, err := repository.db.Db.NamedQuery(selectStmnt, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	var shortUrl ShortenedUrl
+	var shortUrls []ShortenedUrl
+
+	log.Println("Hello")
+	for rows.Next() {
+		err := rows.StructScan(&shortUrl)
+
+		if err != nil {
+			log.Fatalln(err)
+			return nil, err
+		}
+
+		shortUrls = append(shortUrls, shortUrl)
+	}
+
+	return shortUrls, nil
 }
