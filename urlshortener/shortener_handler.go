@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
+	auditlog "invisibleprogrammer.com/invisibleurl/audit_log"
 	"invisibleprogrammer.com/invisibleurl/users"
 )
 
@@ -107,8 +108,10 @@ func DashboardHandler(store *session.Store, userRepository *users.UserRepository
 	}
 }
 
-func MakeShortHandler(store *session.Store, userRepository *users.UserRepository, urlShortenerRepostiory *UrlShortenerRepository, urlShortener *UrlShortener) fiber.Handler {
+func MakeShortHandler(store *session.Store, userRepository *users.UserRepository, urlShortenerRepostiory *UrlShortenerRepository, urlShortener *UrlShortener, auditLogService *auditlog.AuditLogService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		auditLogEvent := auditlog.CREATE_CUSTOM_SHORT_URL
+
 		session, err := store.Get(c)
 		if err != nil {
 			log.Fatalf("Couldn't receive session: %v", err)
@@ -142,6 +145,8 @@ func MakeShortHandler(store *session.Store, userRepository *users.UserRepository
 				log.Printf("Error on shortening: %v", err)
 				return c.SendStatus(fiber.StatusBadRequest)
 			}
+
+			auditLogEvent = int(auditlog.CREATE_SHORT_URL)
 		}
 
 		shortenedUrl := ShortenedUrl{
@@ -157,11 +162,12 @@ func MakeShortHandler(store *session.Store, userRepository *users.UserRepository
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
+		auditLogService.LogEvent(auditlog.Action(auditLogEvent), user.Id, c.Context().RemoteIP())
 		return c.Redirect("/")
 	}
 }
 
-func DeleteShortHandler(store *session.Store, userRepository *users.UserRepository, urlShoUrlShortenerRepository *UrlShortenerRepository, urlShortener *UrlShortener) fiber.Handler {
+func DeleteShortHandler(store *session.Store, userRepository *users.UserRepository, urlShoUrlShortenerRepository *UrlShortenerRepository, urlShortener *UrlShortener, auditLogService *auditlog.AuditLogService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
 		session, err := store.Get(c)
@@ -192,6 +198,7 @@ func DeleteShortHandler(store *session.Store, userRepository *users.UserReposito
 			})
 		}
 
+		auditLogService.LogEvent(auditlog.DELETE_SHORTENED_URL, user.Id, c.Context().RemoteIP())
 		c.SendStatus(fiber.StatusOK)
 		return c.SendString("")
 	}

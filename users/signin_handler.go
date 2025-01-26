@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"golang.org/x/crypto/bcrypt"
+	auditlog "invisibleprogrammer.com/invisibleurl/audit_log"
 	"invisibleprogrammer.com/invisibleurl/environment"
 )
 
@@ -23,7 +24,7 @@ func GetSignInHandler() fiber.Handler {
 	}
 }
 
-func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.Handler {
+func SignInHandler(store *session.Store, userRepository *UserRepository, auditlogService *auditlog.AuditLogService) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 
@@ -31,6 +32,7 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 		password := c.FormValue("password")
 		captchaResponse := c.FormValue("g-recaptcha-response")
 		haveCaptchaResponse := len(captchaResponse) > 0
+		remoteIP := c.Context().RemoteIP()
 
 		if err := verifyCaptcha(captchaResponse); err != nil {
 			c.SendString(err.Error())
@@ -69,7 +71,6 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 			return c.SendStatus(http.StatusInternalServerError)
 		}
 
-		remoteIP := c.Context().RemoteIP()
 		if remoteIP == nil {
 			message := "IP address check failed: remote IP is not provided"
 			log.Error(message)
@@ -111,6 +112,7 @@ func SignInHandler(store *session.Store, userRepository *UserRepository) fiber.H
 			log.Warnf("Couldn't store new IP location for user: %d, remoteIP: %s", user.Id, remoteIP.String())
 		}
 
+		auditlogService.LogEvent(auditlog.LOGIN, user.Id, remoteIP)
 		return c.Redirect("/", fiber.StatusFound)
 	}
 

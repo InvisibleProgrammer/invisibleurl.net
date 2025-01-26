@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/template/html/v2"
 	"github.com/lmittmann/tint"
 	slogfiber "github.com/samber/slog-fiber"
+	auditlog "invisibleprogrammer.com/invisibleurl/audit_log"
 	repository "invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/environment"
 	"invisibleprogrammer.com/invisibleurl/routing"
@@ -40,6 +41,10 @@ func main() {
 
 	userRepository := users.NewUserRepository(repository)
 	urlShortenerRepository := urlshortener.NewUrlShortenerRepository(repository)
+	auditLogRepository := auditlog.NewAuditLogRepository(repository)
+
+	// initialize audit logger
+	auditLogger := auditlog.NewAuditLogService(auditLogRepository)
 
 	// Initialize server session
 	store := session.New()
@@ -66,7 +71,7 @@ func main() {
 	users.RegisterUsernameMiddleware(app, store)
 
 	// Set up routing
-	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository)
+	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository, auditLogger)
 
 	log.Error("Failed to start server", slog.String("error", app.Listen(":3000").Error()))
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	auditlog "invisibleprogrammer.com/invisibleurl/audit_log"
 	"invisibleprogrammer.com/invisibleurl/environment"
 )
 
@@ -31,7 +32,7 @@ type RecaptchaResponse struct {
 	ErrorCodes  []string `json:"error-codes,omitempty"`
 }
 
-func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fiber.Handler {
+func PostSignUpHandler(store *session.Store, userRepository *UserRepository, auditLogService *auditlog.AuditLogService) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 
@@ -39,6 +40,7 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 		password := c.FormValue("password")
 		passwordAgain := c.FormValue("passwordAgain")
 		captchaResponse := c.FormValue("g-recaptcha-response")
+		remoteIP := c.Context().RemoteIP()
 
 		if err := verifyCaptcha(captchaResponse); err != nil {
 			c.SendString(err.Error())
@@ -96,6 +98,7 @@ func PostSignUpHHandler(store *session.Store, userRepository *UserRepository) fi
 			return c.SendStatus(fiber.StatusCreated)
 		}
 
+		auditLogService.LogEvent(auditlog.REGISTRATION, userId, remoteIP)
 		return c.Redirect("/", fiber.StatusFound)
 	}
 

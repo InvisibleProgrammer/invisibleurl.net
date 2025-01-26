@@ -50,4 +50,54 @@ create table last_known_ips (
     constraint pk_last_known_ips primary key (user_id, IP_Address)
 )
 
+RAISE NOTICE 'Creating audit_log';
+create table audit_log (
+    user_id bigint not null,
+    IP_Address inet not null,
+    event_id int not null,
+    description varchar(500) null,
+    recorded_at timestamp
+)
+partition by range(recorded_at);
+
+create index idx_audit_log_user_id_recorded_at on audit_log (user_id, recorded_at);
+
+DECLARE
+    start_date DATE := '2025-01-01';
+    end_date DATE := '2025-12-31';
+    partition_start DATE;
+    partition_end DATE;
+    partition_name TEXT;
+BEGIN
+    partition_start := start_date;
+    WHILE partition_start < end_date LOOP
+        partition_end := partition_start + INTERVAL '1 month';
+        partition_name := FORMAT('audit_log_%s', TO_CHAR(partition_start, 'YYYY_MM'));
+        
+        EXECUTE FORMAT(
+            'CREATE TABLE %I PARTITION OF audit_log FOR VALUES FROM (%L) TO (%L)',
+            partition_name, partition_start, partition_end
+        );
+        
+        partition_start := partition_end;
+    END LOOP;
+END;
+
+
+create table lt_audit_log_events (
+    event_id int not null,
+    name varchar(50) not null
+);
+
+insert into lt_audit_log_events (event_id, name) 
+values 
+    (1, 'REGISTRATION'),
+    (2, 'EMAIL_ACTIVATION'),
+    (3, 'LOGIN'),
+    (4, 'LOGOUT'),
+    (10, 'CREATE_SHORT_URL'),
+    (11, 'CREATE_CUSTOM_SHORT_URL'),
+    (12, 'DELETE_SHORTENED_URL');
+
 END $$;
+

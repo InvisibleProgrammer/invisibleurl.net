@@ -3,11 +3,13 @@ package users
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
+	auditlog "invisibleprogrammer.com/invisibleurl/audit_log"
 )
 
-func ActivationHandler(store *session.Store, userRepository *UserRepository) fiber.Handler {
+func ActivationHandler(store *session.Store, userRepository *UserRepository, auditLogService *auditlog.AuditLogService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		activationTicket := c.Params("activationTicket")
+		remoteIP := c.Context().RemoteIP()
 
 		if activationTicket == "" {
 			return c.SendStatus(fiber.StatusBadRequest)
@@ -23,6 +25,7 @@ func ActivationHandler(store *session.Store, userRepository *UserRepository) fib
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
+		auditLogService.LogEvent(auditlog.EMAIL_ACTIVATION, userId, remoteIP)
 		return c.Redirect("/", fiber.StatusFound)
 	}
 }
