@@ -15,6 +15,7 @@ import (
 	repository "invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/environment"
 	"invisibleprogrammer.com/invisibleurl/routing"
+	"invisibleprogrammer.com/invisibleurl/security"
 	"invisibleprogrammer.com/invisibleurl/urlshortener"
 	"invisibleprogrammer.com/invisibleurl/users"
 )
@@ -66,6 +67,8 @@ func main() {
 	app.Use(requestid.New())
 
 	app.Use(slogfiber.New(logger))
+
+	security.RegisterRateLimitingMiddleware(app)
 
 	// Show authenticated user name on header partial
 	users.RegisterUsernameMiddleware(app, store)
