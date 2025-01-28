@@ -68,7 +68,10 @@ func main() {
 
 	app.Use(slogfiber.New(logger))
 
+	// security
 	security.RegisterRateLimitingMiddleware(app)
+	certFile := "./cert.pem"
+	keyFile := "./key.pem"
 
 	// Show authenticated user name on header partial
 	users.RegisterUsernameMiddleware(app, store)
@@ -76,5 +79,5 @@ func main() {
 	// Set up routing
 	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository, auditLogger)
 
-	log.Error("Failed to start server", slog.String("error", app.Listen(":3000").Error()))
+	log.Error("Failed to start server", slog.String("error", app.ListenTLS(":3000", certFile, keyFile).Error()))
 }

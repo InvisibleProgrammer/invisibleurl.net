@@ -6,3 +6,6 @@ tmp/
 
 # vscode
 .vscode
+
+# certificate files
+*.pem
