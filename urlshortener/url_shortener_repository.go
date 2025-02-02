@@ -18,7 +18,7 @@ func NewUrlShortenerRepository(db *db.Repository) *UrlShortenerRepository {
 
 func (repository *UrlShortenerRepository) GetDashboard() ([]ShortenedUrl, error) {
 
-	selectStmnt := `select short_url_id, user_id, full_url, short_url from short_urls limit 10`
+	selectStmnt := `select short_url_id, user_id, full_url, short_url from short_urls order by short_url_id desc limit 10`
 
 	rows, err := repository.db.Db.Queryx(selectStmnt)
 	if err != nil {
