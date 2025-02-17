@@ -102,7 +102,6 @@ func DashboardHandler(store *session.Store, userRepository *users.UserRepository
 		}
 
 		return c.Render("index", fiber.Map{
-			"Title":     "InvisibleUrl.Net",
 			"ShortURLs": allUrls,
 		})
 	}

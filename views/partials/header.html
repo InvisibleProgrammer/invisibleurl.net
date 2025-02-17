@@ -1,6 +1,17 @@
-<h2>Header
-{{if .emailAddress }} {{ .emailAddress }} 
-    <a href="user/sign-out">Log out</a>
-{{else}} 
-    <a href="user/sign-in">Log In</a> <a href="user/sign-up">Register</a>
-{{ end }}</h2>
+<div class="d-flex">
+    <div class="p-2 flex-grow-1">
+        <h2>
+            InvisibleUrl
+        </h2>
+    </div>
+
+    {{if .emailAddress }} {{ .emailAddress }}
+    <div class="p-2">
+        <a href="user/sign-out">Log out</a>
+    </div>
+    {{else}}
+    <div class="p-2">
+        <a href="user/sign-in">Log In</a> <a href="user/sign-up">Register</a>
+    </div>
+    {{ end }}
+</div>
