@@ -48,7 +48,7 @@ create table last_known_ips (
     recorded_at timestamp with time zone not null,
     last_used timestamp with time zone not null,
     constraint pk_last_known_ips primary key (user_id, IP_Address)
-)
+);
 
 RAISE NOTICE 'Creating audit_log';
 create table audit_log (
