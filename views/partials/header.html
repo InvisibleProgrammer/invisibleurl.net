@@ -7,8 +7,9 @@
         </a>
     </div>
 
-    {{if .emailAddress }} {{ .emailAddress }}
+    {{if .emailAddress }}
     <div class="p-2">
+        {{ .emailAddress }}
         <a href="user/sign-out">Log out</a>
     </div>
     {{else}}
