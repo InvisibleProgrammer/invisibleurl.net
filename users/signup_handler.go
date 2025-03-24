@@ -21,6 +21,7 @@ import (
 func GetSignUpHandler() fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
+
 		return c.Render("users/sign-up", fiber.Map{}, "layouts/user")
 	}
 }
@@ -40,7 +41,12 @@ func PostSignUpHandler(store *session.Store, userRepository *UserRepository, aud
 		password := c.FormValue("password")
 		passwordAgain := c.FormValue("passwordAgain")
 		captchaResponse := c.FormValue("g-recaptcha-response")
+		haveCaptchaResponse := len(captchaResponse) > 0
 		remoteIP := c.Context().RemoteIP()
+
+		if !haveCaptchaResponse {
+			return c.Render("user/sign-up?needCaptcha=true", fiber.Map{}, "layouts/user")
+		}
 
 		if err := verifyCaptcha(captchaResponse); err != nil {
 			c.SendString(err.Error())
