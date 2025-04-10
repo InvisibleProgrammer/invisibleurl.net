@@ -3,6 +3,7 @@ package users
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -13,6 +14,9 @@ type ValidationError struct {
 }
 
 func (validationError *ValidationError) Error() string {
+	if len(validationError.ValidationErrors) > 0 {
+		return strings.Join(validationError.ValidationErrors, ", ")
+	}
 	return validationError.Err.Error()
 }
 
@@ -87,8 +91,8 @@ func validateEmail(emailAddress string) error {
 	validator := validator.New()
 
 	if err := validator.Var(emailAddress, "required,email"); err != nil {
-		errors := make([]string, 1)
-		errors = append(errors, "invalid email: %s", emailAddress)
+		errors := make([]string, 0)
+		errors = append(errors, fmt.Sprintf("invalid email: %s", emailAddress))
 
 		return &ValidationError{
 			errors,

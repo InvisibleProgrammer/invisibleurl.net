@@ -1,7 +1,22 @@
-<form action="/user/sign-up" method="post">
-    <input type="email" name="emailAddress" id="emailAddress">
-    <input type="password" name="password" id="password">
-    <input type="password" name="passwordAgain" id="passwordAgain">
-    <div class="g-recaptcha" data-sitekey="6LeRcBgUAAAAAA6UAM_n2ccEBT9nqDlUsyr9Ejul"></div>
-    <button type="submit">Sign Up</button>
+<form action="/user/sign-up" method="post" hx-post="/user/sign-up" hx-target="#validation-errors">
+    <div id="validation-errors"></div>
+    
+    <div class="mb-3">
+        <label for="emailAddress" class="form-label">Email address</label>
+        <input type="email" class="form-control" name="emailAddress" id="emailAddress" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" name="password" id="password" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" required>
+    </div>
+    
+    <div class="g-recaptcha mb-3" data-sitekey="{{ .recaptchaSite }}"></div>
+    
+    <button type="submit" class="btn btn-primary">Sign Up</button>
 </form>

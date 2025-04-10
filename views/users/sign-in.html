@@ -1,9 +1,23 @@
-<form action="/user/sign-in" method="post" hx-disable>
-    <input type="email" name="emailAddress" id="emailAddress">
-    <input type="password" name="password" id="password">
+<form action="/user/sign-in" method="post" hx-post="/user/sign-in" hx-target="#validation-errors">
+    <div id="validation-errors"></div>
+    
+    <div class="mb-3">
+        <label for="emailAddress" class="form-label">Email address</label>
+        <input type="email" class="form-control" name="emailAddress" id="emailAddress" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" name="password" id="password" required>
+    </div>
     
     {{ if .needCaptcha }}
-<div class="g-recaptcha" data-sitekey="{{ .recaptchaSite }}"></div>
+    <div class="g-recaptcha mb-3" data-sitekey="{{ .recaptchaSite }}"></div>
     {{ end }}
-    <button type="submit">Sign In</button>
+    
+    <button type="submit" class="btn btn-primary">Sign In</button>
 </form>
+
+{{ if .error }}
+<div class="alert alert-danger mt-3">{{ .error }}</div>
+{{ end }}

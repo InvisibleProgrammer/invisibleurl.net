@@ -19,10 +19,11 @@ import (
 )
 
 func GetSignUpHandler() fiber.Handler {
-
 	return func(c *fiber.Ctx) error {
-
-		return c.Render("users/sign-up", fiber.Map{}, "layouts/user")
+		recaptchaSite := environment.RECAPTCHA_SITE
+		return c.Render("users/sign-up", fiber.Map{
+			"recaptchaSite": recaptchaSite,
+		}, "layouts/user")
 	}
 }
 
@@ -34,80 +35,108 @@ type RecaptchaResponse struct {
 }
 
 func PostSignUpHandler(store *session.Store, userRepository *UserRepository, auditLogService *auditlog.AuditLogService) fiber.Handler {
-
 	return func(c *fiber.Ctx) error {
-
 		emailAddress := c.FormValue("emailAddress")
 		password := c.FormValue("password")
-		passwordAgain := c.FormValue("passwordAgain")
+		confirmPassword := c.FormValue("confirmPassword")
 		captchaResponse := c.FormValue("g-recaptcha-response")
-		haveCaptchaResponse := len(captchaResponse) > 0
 		remoteIP := c.Context().RemoteIP()
 
-		if !haveCaptchaResponse {
-			return c.Render("user/sign-up?needCaptcha=true", fiber.Map{}, "layouts/user")
+		// Check if this is an HTMX request
+		isHtmx := c.Get("HX-Request") == "true"
+
+		// Helper function to return validation errors
+		returnValidationError := func(message string) error {
+			if isHtmx {
+				return c.Status(200).SendString(fmt.Sprintf(`<div id="validation-errors" class="alert alert-danger">%s</div>`, message))
+			} else {
+				return c.Redirect("/user/sign-up?error="+url.QueryEscape(message), fiber.StatusSeeOther)
+			}
 		}
 
+		// Check captcha
+		if len(captchaResponse) == 0 {
+			return returnValidationError("Captcha verification is required")
+		}
+
+		// Verify captcha
 		if err := verifyCaptcha(captchaResponse); err != nil {
-			c.SendString(err.Error())
-			c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError("Captcha verification failed: " + err.Error())
 		}
 
-		log.Info(emailAddress)
-
+		// Validate email
 		if err := validateEmail(emailAddress); err != nil {
-			c.SendString("invalid email")
-			return c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError(err.Error())
 		}
 
-		if err := validateConfirmPassword(password, passwordAgain); err != nil {
-			c.SendString(err.Error())
-			c.SendStatus(fiber.StatusBadRequest)
+		// Validate password
+		if err := validatePassword(password); err != nil {
+			return returnValidationError(err.Error())
 		}
 
-		if password != passwordAgain {
-			return c.SendStatus(fiber.StatusBadRequest)
+		// Check if passwords match
+		if err := validateConfirmPassword(password, confirmPassword); err != nil {
+			return returnValidationError(err.Error())
 		}
 
+		// Check if user already exists
 		isExists, err := userRepository.Is_Exists(emailAddress)
 		if err != nil {
 			log.Infof("sign-up: %s failed: %v", emailAddress, err)
-			return c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError("Registration error: please try again later")
 		}
 
 		if isExists {
 			log.Infof("sign-up: %s failed: email is already registered", emailAddress)
-			return c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError("This email address is already registered")
 		}
 
+		// Generate public ID and hash password
 		publicId := uuid.New()
 		passwordHash, err := hashPassword(password)
 		if err != nil {
 			log.Infof("sign-up: %s failed: error on password hashing: %v", emailAddress, err)
-			return c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError("Registration error: could not process password")
 		}
 
+		// Store user in database
 		var userId int64
 		if userId, err = userRepository.StoreUser(publicId, emailAddress, passwordHash); err != nil {
 			log.Infof("sign-up: %s failed: %v", emailAddress, err)
-			return c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError("Registration error: could not create user")
 		}
 
+		// Generate activation ticket
 		var activationTicket *string
 		if activationTicket, err = generateActivationTicket(userId, userRepository); err != nil {
 			log.Infof("sign-up: %s failed: error on creating activation ticket: %v", emailAddress, err)
-			return c.SendStatus(fiber.StatusBadRequest)
+			return returnValidationError("Registration error: could not create activation ticket")
 		}
 
+		// Send verification email
 		if err = sendVerificationEmail(emailAddress, *activationTicket); err != nil {
 			log.Infof("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
-			return c.SendStatus(fiber.StatusCreated)
+			return returnValidationError("Account created but activation email could not be sent. Please contact support.")
 		}
 
+		// Log the registration event
 		auditLogService.LogEvent(auditlog.REGISTRATION, userId, remoteIP)
-		return c.Redirect("/", fiber.StatusFound)
-	}
 
+		// Success message and redirect
+		if isHtmx {
+			successHTML := `<div id="validation-errors" class="alert alert-success">
+				Registration successful! Please check your email to activate your account.
+				<script>
+					setTimeout(function() {
+						window.location.href = "/user/sign-in";
+					}, 3000);
+				</script>
+			</div>`
+			return c.Status(200).SendString(successHTML)
+		}
+
+		return c.Redirect("/user/sign-in", fiber.StatusFound)
+	}
 }
 
 func verifyCaptcha(captchaResponse string) error {
