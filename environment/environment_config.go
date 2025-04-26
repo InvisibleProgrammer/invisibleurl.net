@@ -13,6 +13,12 @@ var RECAPTCHA_SECRET string
 var RECAPTCHA_VERIFY_URL string
 var RECAPTCHA_SITE string
 
+// Email settings
+var SMTP_HOST string
+var SMTP_PORT string
+var SMTP_PASSWWORD string
+var EMAIL_FROM string
+
 func Init() {
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
@@ -23,4 +29,8 @@ func Init() {
 	RECAPTCHA_SECRET = os.Getenv("RECAPTCHA_SECRET")
 	RECAPTCHA_VERIFY_URL = os.Getenv("RECAPTCHA_VERIFY_URL")
 	RECAPTCHA_SITE = os.Getenv("RECAPTCHA_SITE")
+	SMTP_HOST = os.Getenv("SMTP_HOST")
+	SMTP_PORT = os.Getenv("SMTP_PORT")
+	SMTP_PASSWWORD = os.Getenv("SMTP_PASSWWORD")
+	EMAIL_FROM = os.Getenv("EMAIL_FROM")
 }

@@ -176,20 +176,18 @@ func hashPassword(password string) (*string, error) {
 }
 
 func sendVerificationEmail(emailAddress string, activationTicket string) error {
-	host := "localhost:1025"
-	from := "noreply@invisibleurl.net"
 	to := emailAddress
 	subject := "InvisibleURL.Net - Activate your email address"
 	body := fmt.Sprintf("Please activate: https://localhost:3000/user/activate/%s", activationTicket)
 
-	msg := "From: " + from + "\n" +
+	msg := "From: " + environment.EMAIL_FROM + "\n" +
 		"To: " + to + "\n" +
 		"Subject: " + subject + "\n\n" +
 		body
 
-	auth := smtp.PlainAuth("", "", "", "localhost")
+	auth := smtp.PlainAuth("", environment.EMAIL_FROM, environment.SMTP_PASSWWORD, environment.SMTP_HOST)
 
-	err := smtp.SendMail(host, auth, from, []string{to}, []byte(msg))
+	err := smtp.SendMail(environment.SMTP_HOST+":"+environment.SMTP_PORT, auth, environment.EMAIL_FROM, []string{to}, []byte(msg))
 
 	return err
 }
