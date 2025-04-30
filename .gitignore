@@ -1,5 +1,9 @@
+# builds
+/release
+
 # Sensitive information
 .env
+env.sh
 
 # air
 tmp/
