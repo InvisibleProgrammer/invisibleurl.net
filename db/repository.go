@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib" // Standard library bindings for pgx (Postgres driver)
 	"github.com/jmoiron/sqlx"
+	"invisibleprogrammer.com/invisibleurl/environment"
 )
 
 type Repository struct {
@@ -22,7 +23,18 @@ func NewRepository() (*Repository, error) {
 }
 
 func connect() (*sqlx.DB, error) {
-	db, err := sqlx.Open("pgx", "postgres://invisibleprogrammer:invisiblepassword@localhost:5432/invisibleurl-db?sslmode=disable")
+
+	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		environment.DB_USER,
+		environment.DB_PASSWORD,
+		environment.DB_HOST,
+		environment.DB_PORT,
+		environment.DB_NAME,
+	)
+
+	log.Printf("DB host: %s\n", environment.DB_HOST)
+
+	db, err := sqlx.Open("pgx", connString)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't connect to database: %v", err)
 	}
