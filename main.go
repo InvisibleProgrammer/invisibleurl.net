@@ -70,8 +70,6 @@ func main() {
 
 	// security
 	security.RegisterRateLimitingMiddleware(app)
-	certFile := "./cert.pem"
-	keyFile := "./key.pem"
 
 	// Show authenticated user name on header partial
 	users.RegisterUsernameMiddleware(app, store)
@@ -79,5 +77,5 @@ func main() {
 	// Set up routing
 	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository, auditLogger)
 
-	log.Error("Failed to start server", slog.String("error", app.ListenTLS(":3000", certFile, keyFile).Error()))
+	log.Error("Failed to start server", slog.String("error", app.Listen("127.0.0.1:8080").Error()))
 }
