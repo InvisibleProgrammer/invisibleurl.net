@@ -178,7 +178,7 @@ func hashPassword(password string) (*string, error) {
 func sendVerificationEmail(emailAddress string, activationTicket string) error {
 	to := emailAddress
 	subject := "InvisibleURL.Net - Activate your email address"
-	body := fmt.Sprintf("Please activate: https://localhost:3000/user/activate/%s", activationTicket)
+	body := fmt.Sprintf("Please activate: %s/user/activate/%s", environment.HOST, activationTicket)
 
 	msg := "From: " + environment.EMAIL_FROM + "\n" +
 		"To: " + to + "\n" +

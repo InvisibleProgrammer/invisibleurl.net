@@ -8,6 +8,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var HOST string
+
 // Recaptcha
 var RECAPTCHA_SECRET string
 var RECAPTCHA_VERIFY_URL string
@@ -32,6 +34,8 @@ func Init() {
 		log.Error("Failed to load the env vars: %v", slog.Any("err", err))
 	}
 	godotenv.Load(".env")
+
+	HOST = os.Getenv("HOST")
 
 	// Captcha
 	RECAPTCHA_SECRET = os.Getenv("RECAPTCHA_SECRET")
