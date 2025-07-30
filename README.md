@@ -46,7 +46,7 @@ Note: your browser won't like that certificate. You have to add it to your brows
 
 Install:
 ```bash
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 ```
 
 Run:
