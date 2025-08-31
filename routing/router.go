@@ -35,6 +35,8 @@ func RegisterRoutes(
 	app.Post("/user/sign-up", users.PostSignUpHandler(store, userRepository, auditLogService))
 	app.Get("/user/sign-in", users.GetSignInHandler())
 	app.Post("/user/sign-in", users.SignInHandler(store, userRepository, auditLogService))
+	app.Get("/user/activate-successful", users.ActivationSuccessfulHandler())
+	app.Get("/user/activate-fail", users.ActivationFailureHandler())
 	app.Get("/user/activate/:activationTicket", users.ActivationHandler(store, userRepository, auditLogService))
 	app.Get("/user/sign-out", users.SignOutHandler(store, userRepository, auditLogService))
 
