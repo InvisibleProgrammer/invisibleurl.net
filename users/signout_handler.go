@@ -22,7 +22,7 @@ func SignOutHandler(store *session.Store, userRepository *UserRepository, auditL
 		}
 
 		publicId := session.Get("publicId")
-		user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
+		user, err := userRepository.Get_User_by_PublicId(publicId.(string))
 		if err != nil {
 			errorMessage := fmt.Sprintf("Cannot get user by public id: %s", err)
 			log.Print(errorMessage)

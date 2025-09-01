@@ -6,7 +6,9 @@ import (
 	"net"
 	"time"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"invisibleprogrammer.com/invisibleurl/db"
 )
 
@@ -162,9 +164,9 @@ func (repository *UserRepository) Activate_User(userId int64) error {
 	return nil
 }
 
-func (repository *UserRepository) Get_UserId_by_ActivationTicket(activationTicket string) (int64, error) {
+func (repository *UserRepository) Get_User_by_ActivationTicket(activationTicket string) (*User, error) {
 	selectStmnt :=
-		`select a.user_id from user_activation a
+		`select u.user_id, u.public_id, u.email_address, u.password_hash, u.user_status from user_activation a
 			inner join users u on u.user_id = a.user_id
 		where u.user_status = 0 and a.activation_ticket = :activationTicket`
 
@@ -174,24 +176,23 @@ func (repository *UserRepository) Get_UserId_by_ActivationTicket(activationTicke
 
 	rows, err := repository.db.Db.NamedQuery(selectStmnt, parameters)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if !rows.Next() {
-		return 0, nil
+		return nil, nil
 	}
 
-	var userId int64
-	err = rows.Scan(&userId)
+	user, err := readUser(rows)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return userId, nil
+	return user, nil
 }
 
 func (repository *UserRepository) Get_User_by_Email(emailAddress string) (*User, error) {
-	selectStmnt := `select user_id, public_id, password_hash, user_status from users where email_address = :emailAddress and user_status in (0, 1)`
+	selectStmnt := `select user_id, public_id, email_address, password_hash, user_status from users where email_address = :emailAddress and user_status in (0, 1)`
 
 	parameters := map[string]interface{}{
 		"emailAddress": emailAddress,
@@ -206,30 +207,16 @@ func (repository *UserRepository) Get_User_by_Email(emailAddress string) (*User,
 		return nil, fmt.Errorf("user not found")
 	}
 
-	var userId int64
-	var publicId string
-	var passwordHash string
-	var userStatus int8
-	err = rows.Scan(&userId, &publicId, &passwordHash, &userStatus)
-	if err != nil {
+	var user *User
+	if user, err = readUser(rows); err != nil {
 		return nil, err
 	}
 
-	activated := userStatus == 1
-	user := User{
-		Id:           userId,
-		PublicId:     publicId,
-		EmailAddress: emailAddress,
-		Activated:    activated,
-		PasswordHash: passwordHash,
-		Status:       userStatus,
-	}
-
-	return &user, nil
+	return user, nil
 }
 
-func (repository *UserRepository) Get_UserId_by_PublicId(publicId string) (*User, error) {
-	selectStmnt := `select user_id, email_address, password_hash, user_status from users where public_id = :publicId and user_status in (0, 1)`
+func (repository *UserRepository) Get_User_by_PublicId(publicId string) (*User, error) {
+	selectStmnt := `select user_id, public_id, email_address, password_hash, user_status from users where public_id = :publicId and user_status in (0, 1)`
 
 	parameters := map[string]interface{}{
 		"publicId": publicId,
@@ -244,26 +231,12 @@ func (repository *UserRepository) Get_UserId_by_PublicId(publicId string) (*User
 		return nil, fmt.Errorf("user not found")
 	}
 
-	var userId int64
-	var emailAddress string
-	var passwordHash string
-	var userStatus int8
-	err = rows.Scan(&userId, &emailAddress, &passwordHash, &userStatus)
+	user, err := readUser(rows)
 	if err != nil {
 		return nil, err
 	}
 
-	activated := userStatus == 1
-	user := User{
-		Id:           userId,
-		PublicId:     publicId,
-		EmailAddress: emailAddress,
-		Activated:    activated,
-		PasswordHash: passwordHash,
-		Status:       userStatus,
-	}
-
-	return &user, nil
+	return user, nil
 }
 
 func (repository *UserRepository) Is_Known_IP(userId int64, remoteIP net.IP) (bool, error) {
@@ -313,4 +286,29 @@ func (repository *UserRepository) StoreNewIP(userId int64, remoteIP net.IP) erro
 	}
 
 	return nil
+}
+
+func readUser(rows *sqlx.Rows) (*User, error) {
+	var userId int64
+	var publicId string
+	var emailAddress string
+	var passwordHash string
+	var userStatus int8
+	err := rows.Scan(&userId, &publicId, &emailAddress, &passwordHash, &userStatus)
+	if err != nil {
+		log.Errorf("Couldn't read user from the resultset! %v", rows)
+		return nil, err
+	}
+
+	activated := userStatus == 1
+
+	user := User{
+		Id:           userId,
+		PublicId:     publicId,
+		EmailAddress: emailAddress,
+		Activated:    activated,
+		PasswordHash: passwordHash,
+		Status:       userStatus,
+	}
+	return &user, nil
 }

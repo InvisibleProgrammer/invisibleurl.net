@@ -33,7 +33,7 @@ func FilterHandler(store *session.Store, userRepository *users.UserRepository, u
 		publicId := session.Get("publicId")
 		log.Printf("PublicId: %v\n", publicId)
 
-		user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
+		user, err := userRepository.Get_User_by_PublicId(publicId.(string))
 		if err != nil {
 			errorMessage := fmt.Sprintf("Cannot get user by public id: %s", err)
 			log.Print(errorMessage)
@@ -71,7 +71,7 @@ func DashboardHandler(store *session.Store, userRepository *users.UserRepository
 		log.Printf("PublicId: %v\n", publicId)
 
 		if publicId != nil {
-			user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
+			user, err := userRepository.Get_User_by_PublicId(publicId.(string))
 			if err != nil {
 				errorMessage := fmt.Sprintf("Cannot get user by public id: %s", err)
 				log.Print(errorMessage)
@@ -118,7 +118,7 @@ func MakeShortHandler(store *session.Store, userRepository *users.UserRepository
 		}
 
 		publicId := session.Get("publicId").(string)
-		user, err := userRepository.Get_UserId_by_PublicId(publicId)
+		user, err := userRepository.Get_User_by_PublicId(publicId)
 		if err != nil {
 			log.Printf("Cannot get user by public id")
 			return c.SendStatus(fiber.StatusBadRequest)
@@ -177,7 +177,7 @@ func DeleteShortHandler(store *session.Store, userRepository *users.UserReposito
 		shortUrl := c.Params("shortUrl")
 		publicId := session.Get("publicId")
 
-		user, err := userRepository.Get_UserId_by_PublicId(publicId.(string))
+		user, err := userRepository.Get_User_by_PublicId(publicId.(string))
 		if err != nil {
 			errorMessage := fmt.Sprintf("Error on deleting %s: %v", shortUrl, err)
 			log.Print(errorMessage)

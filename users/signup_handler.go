@@ -129,7 +129,7 @@ func PostSignUpHandler(store *session.Store, userRepository *UserRepository, aud
 				<script>
 					setTimeout(function() {
 						window.location.href = "/user/sign-in";
-					}, 3000);
+					}, 5000);
 				</script>
 			</div>`
 			return c.Status(200).SendString(successHTML)
