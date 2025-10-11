@@ -10,10 +10,10 @@ require (
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lmittmann/tint v1.0.5
 	github.com/samber/slog-fiber v1.16.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.25.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (

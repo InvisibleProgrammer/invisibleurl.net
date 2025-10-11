@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"io"
 	"log/slog"
 	"os"
 
@@ -9,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
-	"github.com/lmittmann/tint"
 	slogfiber "github.com/samber/slog-fiber"
+	"gopkg.in/natefinch/lumberjack.v2"
 	auditlog "invisibleprogrammer.com/invisibleurl/audit_log"
 	repository "invisibleprogrammer.com/invisibleurl/db"
 	"invisibleprogrammer.com/invisibleurl/environment"
@@ -21,18 +22,33 @@ import (
 )
 
 func main() {
+	logDir := "log"
 
-	logger := slog.New(tint.NewHandler(os.Stdout, nil))
-	log := slog.New(logger.Handler())
+	logRotator := &lumberjack.Logger{
+		Filename:   logDir + "/invisibleurl.log",
+		MaxSize:    100,  // Max size in MB
+		MaxBackups: 5,    // Number of backups
+		MaxAge:     30,   // Days
+		Compress:   true, // Enable compression
+	}
 
-	log.Info("Starting Fiber application",
-		slog.String("version", "v2.52.1"),
-		slog.String("address", "127.0.0.1:3000"),
-		slog.String("host", "0.0.0.0"),
-		slog.Int("port", 3000),
-		slog.Int("pid", os.Getpid()))
+	multiWriter := slog.NewJSONHandler(
+		io.MultiWriter(os.Stdout, logRotator),
+		&slog.HandlerOptions{
+			AddSource: true,
+			Level:     slog.LevelInfo,
+		},
+	)
+
+	// logger := slog.New(tint.NewHandler(logFile, nil))
+	log := slog.New(multiWriter)
 
 	environment.Init()
+
+	log.Info("Starting invisibleurl.net",
+		slog.String("version", "0.0.0"),
+		slog.String("address", environment.HOST),
+		slog.Int("pid", os.Getpid()))
 
 	// Initialize repositories
 	repository, err := repository.NewRepository()
@@ -66,7 +82,7 @@ func main() {
 
 	app.Use(requestid.New())
 
-	app.Use(slogfiber.New(logger))
+	app.Use(slogfiber.New(log))
 
 	// security
 	security.RegisterRateLimitingMiddleware(app)

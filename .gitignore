@@ -13,3 +13,6 @@ tmp/
 
 # certificate files
 *.pem
+
+# log files
+log/*
