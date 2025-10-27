@@ -21,6 +21,15 @@ brew services run mailhog
 ```
 **Note**: Web UI: http://localhost:8025/
 
+Mailhog dev settings:
+
+```
+SMTP_HOST='localhost'
+SMTP_PORT=1025
+SMTP_PASSWWORD=''
+EMAIL_FROM='noreply@invisibleurl.net'
+```
+
 ### To run the tests:
 
 ```bash
