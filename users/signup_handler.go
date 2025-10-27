@@ -95,27 +95,27 @@ func PostSignUpHandler(store *session.Store, userRepository *UserRepository, aud
 		publicId := uuid.New()
 		passwordHash, err := hashPassword(password)
 		if err != nil {
-			log.Infof("sign-up: %s failed: error on password hashing: %v", emailAddress, err)
+			log.Errorf("sign-up: %s failed: error on password hashing: %v", emailAddress, err)
 			return returnValidationError("Registration error: could not process password")
 		}
 
 		// Store user in database
 		var userId int64
 		if userId, err = userRepository.StoreUser(publicId, emailAddress, passwordHash); err != nil {
-			log.Infof("sign-up: %s failed: %v", emailAddress, err)
+			log.Errorf("sign-up: %s failed: %v", emailAddress, err)
 			return returnValidationError("Registration error: could not create user")
 		}
 
 		// Generate activation ticket
 		var activationTicket *string
 		if activationTicket, err = generateActivationTicket(userId, userRepository); err != nil {
-			log.Infof("sign-up: %s failed: error on creating activation ticket: %v", emailAddress, err)
+			log.Errorf("sign-up: %s failed: error on creating activation ticket: %v", emailAddress, err)
 			return returnValidationError("Registration error: could not create activation ticket")
 		}
 
 		// Send verification email
 		if err = sendVerificationEmail(emailAddress, *activationTicket); err != nil {
-			log.Infof("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
+			log.Errorf("sign-up: %s problem: couldn't send email validation email: %v", emailAddress, err)
 			return returnValidationError("Account created but activation email could not be sent. Please contact support.")
 		}
 
