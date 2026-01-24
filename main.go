@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/gob"
 	"io"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -93,5 +97,22 @@ func main() {
 	// Set up routing
 	routing.RegisterRoutes(app, store, userRepository, urlShortenerRepository, auditLogger)
 
-	log.Error("Failed to start server", slog.String("error", app.Listen("127.0.0.1:8080").Error()))
+	go func() {
+		if err := app.Listen("127.0.0.1:8080"); err != nil {
+			log.Error("Error on start: %v", slog.Any("err", err))
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	log.Info("Shutting down gracefully...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := app.ShutdownWithContext(ctx); err != nil {
+		log.Info("Shutdown error: %v", slog.Any("err", err))
+	}
 }
