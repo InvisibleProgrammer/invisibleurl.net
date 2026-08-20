@@ -12,12 +12,12 @@ OR you can use mailhog for testing purposes, like this:
 
 Install:
 ```bash
-brew install mailhog
+brew install mailpit
 ```
 
 Run:
 ```bash
-brew services run mailhog
+brew services run mailpit
 ```
 **Note**: Web UI: http://localhost:8025/
 

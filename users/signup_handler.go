@@ -185,9 +185,11 @@ func sendVerificationEmail(emailAddress string, activationTicket string) error {
 		"Subject: " + subject + "\n\n" +
 		body
 
-	auth := smtp.PlainAuth("", environment.EMAIL_FROM, environment.SMTP_PASSWWORD, environment.SMTP_HOST)
+	if environment.SMTP_PASSWWORD != "" {
+		smtp.PlainAuth("", environment.EMAIL_FROM, environment.SMTP_PASSWWORD, environment.SMTP_HOST)
+	}
 
-	err := smtp.SendMail(environment.SMTP_HOST+":"+environment.SMTP_PORT, auth, environment.EMAIL_FROM, []string{to}, []byte(msg))
+	err := smtp.SendMail(environment.SMTP_HOST+":"+environment.SMTP_PORT, nil, environment.EMAIL_FROM, []string{to}, []byte(msg))
 
 	return err
 }
